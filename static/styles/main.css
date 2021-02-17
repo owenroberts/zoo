@@ -1,0 +1,12 @@
+html { height: 100%; }
+body { 
+	margin: 0; 
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	background: rgb(95,89,109);
+	background: radial-gradient(ellipse, rgba(95,89,109,1), rgba(0,0,0,1));
+
+}

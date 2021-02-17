@@ -1,0 +1,32 @@
+{
+	"name": "zoo",
+	"version": "0.0.1",
+	"description": "zoo game",
+	"main": "index.js",
+	"scripts": {
+		"build": "webpack --config webpack.config.js",
+		"start": "webpack-dev-server --mode development",
+		"format": "prettier --write '**/*.js'"
+	},
+	"keywords": [
+		"zoo"
+	],
+	"author": "owenribbit",
+	"license": "FIND LICENSE IN TK",
+	"dependencies": {
+		"cannon-es": "^0.16.0",
+		"three": "^0.115.0"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.12.13",
+		"@babel/plugin-proposal-class-properties": "^7.12.13",
+		"@babel/plugin-syntax-dynamic-import": "^7.8.3",
+		"@babel/preset-env": "^7.12.13",
+		"babel-loader": "^8.2.2",
+		"prettier": "^2.0.4",
+		"webpack": "^4.42.1",
+		"webpack-cli": "^3.3.11",
+		"webpack-dev-server": "^3.11.0",
+		"wepack": "0.0.1"
+	}
+}
