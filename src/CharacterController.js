@@ -15,19 +15,23 @@ function CharacterController(scene, camera, physicsEngine) {
 	const acceleration = new THREE.Vector3(1, 1, 10.0);
 	const velocity = new THREE.Vector3(0, 0, 0);
 
+
 	const radius = 1.3;
 	const sphereShape = new CANNON.Sphere(radius);
 	const physicsMaterial = new CANNON.Material('physics');
-	const playerBody = new CANNON.Body({ mass: 5, material: physicsMaterial });
-	playerBody.position.set(0, 5, 0);
-	playerBody.linearDamping = 0.9;
-	physicsEngine.addBody(playerBody);
+	const sphereBody = new CANNON.Body({ mass: 5, material: physicsMaterial });
+	sphereBody.addShape(sphereShape);
+	sphereBody.position.set(0, 5, 0);
+	sphereBody.linearDamping = 0.9;
+	physicsEngine.addBody(sphereBody);
+
+	console.log(sphereBody);
 
 	const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x22ffaa, wireframe: true });
 	const playerDebugMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), debugMaterial);
+	playerDebugMesh.position.copy(sphereBody.position);
 	scene.add(playerDebugMesh);
 
-	console.log(playerBody);
 
 	let isLoaded = false;
 	this.isReady = function() {
@@ -92,6 +96,7 @@ function CharacterController(scene, camera, physicsEngine) {
 		if (!character) return;
 
 		if (stateMachine) stateMachine.update(timeInSeconds, input);
+		if (mixer) mixer.update(timeInSeconds);
 
 		const v = velocity;
 		const frameDecceleration = new THREE.Vector3(
@@ -127,12 +132,11 @@ function CharacterController(scene, camera, physicsEngine) {
 			_R.multiply(_Q);
 		}
 
-		controlObject.quaternion.copy(_R);
 
 		const oldPosition = new THREE.Vector3();
-	    oldPosition.copy(controlObject.position);
+		oldPosition.copy(controlObject.position);
 
-	    const forward = new THREE.Vector3(0, 0, 1);
+		const forward = new THREE.Vector3(0, 0, 1);
 		forward.applyQuaternion(controlObject.quaternion);
 		forward.normalize();
 
@@ -148,7 +152,14 @@ function CharacterController(scene, camera, physicsEngine) {
 
 		oldPosition.copy(controlObject.position);
 
-		if (mixer) mixer.update(timeInSeconds);
+		// sphereBody.velocity.x += v.x;
+		// sphereBody.velocity.z += v.z;
+
+		// character.position.copy(sphereBody.position);
+		// character.quaternion.copy(sphereBody.quaternion);
+
+		playerDebugMesh.position.copy(sphereBody.position);
+		playerDebugMesh.quaternion.copy(sphereBody.quaternion);
 	};
 }
 

@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 
-function Physics(scene, playerBody) {
+function Physics(scene) {
 	
 	const material = new THREE.MeshLambertMaterial({ color: 0xdddddd });
 	const world = new CANNON.World();
@@ -39,10 +39,6 @@ function Physics(scene, playerBody) {
 	groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 	world.addBody(groundBody);
 
-
-	// const characterParent = new THREE.Group();
-	const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x22ffaa, wireframe: true });
-
 	const boxBodies = [];
 	const boxMeshes = [];
 	const halfExtents = new CANNON.Vec3(1, 1, 1);
@@ -65,10 +61,9 @@ function Physics(scene, playerBody) {
 		}
 	}
 
-	this.addBody = function(body, debugMesh) {
+	this.addBody = function(body) {
 		world.addBody(body);
 	};
-
 
 	this.update = function(characterPosition) {
 		world.step(dt);
@@ -77,11 +72,6 @@ function Physics(scene, playerBody) {
 			boxMeshes[i].position.copy(boxBodies[i].position);
 			boxMeshes[i].quaternion.copy(boxBodies[i].quaternion);
 		}
-
-		// playerDebugMesh.position.copy(playerBody.position);
-
-		// sphereMesh.position.copy(sphereBody.position);
-		// sphereMesh.quaternion.copy(sphereBody.quaternion);
 
 	};
 }
