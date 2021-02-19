@@ -12,7 +12,10 @@ function Physics(scene) {
 	const world = new CANNON.World();
 	world.defaultContactMaterial.contactEquationStiffness = 1e9;
 	world.defaultContactMaterial.contactEquationRelaxation = 4;
-	world.gravity.set(0, -20, 0);
+	world.gravity.set(0, -9.81, 0);
+	world.broadphase = new CANNON.SAPBroadphase(world);
+	world.allowSleep = true; // not sure what this means ... 
+
 
 	const solver = new CANNON.GSSolver();
 	solver.iterations = 7;

@@ -15,21 +15,20 @@ function CharacterController(scene, camera, physicsEngine) {
 	const acceleration = new THREE.Vector3(1, 1, 10.0);
 	const velocity = new THREE.Vector3(0, 0, 0);
 
-
 	const radius = 1.3;
 	const sphereShape = new CANNON.Sphere(radius);
 	const physicsMaterial = new CANNON.Material('physics');
-	const sphereBody = new CANNON.Body({ mass: 5, material: physicsMaterial });
-	sphereBody.addShape(sphereShape);
-	sphereBody.position.set(0, 5, 0);
-	sphereBody.linearDamping = 0.9;
-	physicsEngine.addBody(sphereBody);
+	const playerBody = new CANNON.Body({ mass: 5, material: physicsMaterial });
+	playerBody.addShape(sphereShape);
+	playerBody.position.set(0, 5, 0);
+	playerBody.linearDamping = 0.9;
+	physicsEngine.addBody(playerBody);
 
-	console.log(sphereBody);
+	console.log(playerBody);
 
 	const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x22ffaa, wireframe: true });
 	const playerDebugMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), debugMaterial);
-	playerDebugMesh.position.copy(sphereBody.position);
+	playerDebugMesh.position.copy(playerBody.position);
 	scene.add(playerDebugMesh);
 
 
@@ -98,68 +97,14 @@ function CharacterController(scene, camera, physicsEngine) {
 		if (stateMachine) stateMachine.update(timeInSeconds, input);
 		if (mixer) mixer.update(timeInSeconds);
 
-		const v = velocity;
-		const frameDecceleration = new THREE.Vector3(
-			v.x * decceleration.x,
-			v.y * decceleration.y,
-			v.z * decceleration.z
-		);
-		frameDecceleration.multiplyScalar(timeInSeconds);
-		frameDecceleration.z = Math.sign(frameDecceleration.z) * Math.min(
-			Math.abs(frameDecceleration.z), Math.abs(velocity.z));
-
-		v.add(frameDecceleration);
-
-		const controlObject = character;
-		const _Q = new THREE.Quaternion();
-		const _A = new THREE.Vector3();
-		const _R = controlObject.quaternion.clone();
-
 		if (input.forward) {
-			v.z += acceleration.z * timeInSeconds;
-		}
-		if (input.backward) {
-			v.z -= acceleration.z * timeInSeconds;
-		}
-		if (input.left) {
-			_A.set(0, 1, 0);
-			_Q.setFromAxisAngle(_A, Math.PI * timeInSeconds * acceleration.y);
-			_R.multiply(_Q);
-		}
-		if (input.right) {
-			_A.set(0, 1, 0);
-			_Q.setFromAxisAngle(_A, -Math.PI * timeInSeconds * acceleration.y);
-			_R.multiply(_Q);
+			const force = new CANNON.Vec3(0, 0, 100 * timeInSeconds);
+			playerBody.applyImpulse(force);
+			playerBody.velocity.z += acceleration.z * timeInSeconds;
 		}
 
-
-		const oldPosition = new THREE.Vector3();
-		oldPosition.copy(controlObject.position);
-
-		const forward = new THREE.Vector3(0, 0, 1);
-		forward.applyQuaternion(controlObject.quaternion);
-		forward.normalize();
-
-		const sideways = new THREE.Vector3(1, 0, 0);
-		sideways.applyQuaternion(controlObject.quaternion);
-		sideways.normalize();
-
-		sideways.multiplyScalar(velocity.x * timeInSeconds);
-		forward.multiplyScalar(velocity.z * timeInSeconds);
-
-		controlObject.position.add(forward);
-		controlObject.position.add(sideways);
-
-		oldPosition.copy(controlObject.position);
-
-		// sphereBody.velocity.x += v.x;
-		// sphereBody.velocity.z += v.z;
-
-		// character.position.copy(sphereBody.position);
-		// character.quaternion.copy(sphereBody.quaternion);
-
-		playerDebugMesh.position.copy(sphereBody.position);
-		playerDebugMesh.quaternion.copy(sphereBody.quaternion);
+		playerDebugMesh.position.copy(playerBody.position);
+		playerDebugMesh.quaternion.copy(playerBody.quaternion);
 	};
 }
 
