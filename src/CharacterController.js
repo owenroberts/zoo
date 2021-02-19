@@ -81,7 +81,7 @@ function CharacterController(scene, camera, physicsEngine) {
 	const radius = 1.3;
 	const sphereShape = new CANNON.Sphere(radius);
 	const physicsMaterial = new CANNON.Material('physics');
-	const playerBody = new CANNON.Body({ mass: 5, material: physicsMaterial });
+	const playerBody = new CANNON.Body({ mass: 1, material: physicsMaterial });
 	playerBody.friction = 0.0;
 	playerBody.allowSleep = false;
 	playerBody.collisionFilterGroup = 2;
@@ -99,56 +99,29 @@ function CharacterController(scene, camera, physicsEngine) {
 	playerDebugMesh.position.copy(playerBody.position);
 	scene.add(playerDebugMesh);	
 
-	// raycast debug
-	const boxGeo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
-	const boxMat = new THREE.MeshLambertMaterial({
-		color: 0xff00ff
-	});
-	const raycastBox = new THREE.Mesh(boxGeo, boxMat);
-	// raycastBox.visible = false;
-	scene.add(raycastBox);
+	const acceleration = new THREE.Vector3(1, 1, 10.0);
 
-	const rayResult = new CANNON.RaycastResult();
-	let rayHasHit = false;
-	const rayCastLength = 0.57;
-	const raySafeOffset = 0.03;
-	let wantsToJump = false;
-
-	const acceleration = new THREE.Vector3();
-	const velocity = new THREE.Vector3();
-	const moveSpeed = 4;
-	const angularVelocity = 0;
-	const orientation= new THREE.Vector3(0, 0, 1);
-	const orientationTarget = new THREE.Vector3(0, 0, 1);
 
 	this.update = function(timeElapsed) {
 		if (!character) return;
-		const timeElapsedS = timeElapsed * 0.001;
+		const timeInSeconds = timeElapsed * 0.001;
 		if (stateMachine) stateMachine.update(timeInSeconds, input);
 		if (mixer) mixer.update(timeInSeconds);
 
-		// feet ray cast
-		const start = new CANNON.Vec3(playerBody.position.x, playerBody.position.y, playerBody.position.z);
-		const end = new CANNON.Vec3(playerBody.position.x, playerBody.position.y - rayCastLength - raySafeOffset, playerBody.position.z);
-		const rayCastOptions = {
-			collisionFilterMask: 1,
-			skipBackfaces: true
-		};
-		rayHasHit = physicsEngine.playerRayCast(start, end, rayCastOptions, rayResult);
-		if (rayHasHit) {
-			if (raycastBox.visible) {
-				raycastBox.position.x = rayResult.hitPointWorld.x;
-				raycastBox.position.y = rayResult.hitPointWorld.y;
-				raycastBox.position.z = rayResult.hitPointWorld.z;
-			} else {
-				if (character.raycastBox.visible) {
-					character.raycastBox.position.set(playerBody.position.x, playerBody.position.y - rayCastLength - raySafeOffset, character.position.z);
-				}
-			}
+		const v = new THREE.Vector3();
+		if (input.forward) {
+			v.z += acceleration.z * timeInSeconds;
+		}
+		if (input.backward) {
+			v.z -= acceleration.z * timeInSeconds;
 		}
 
+		const forward = new THREE.Vector3(0, 0, 1);
+		forward.applyQuaternion(playerBody.quaternion);
+		forward.normalize();
+		forward.multiplyScalar(v.z * timeElapsed);
 
-		
+		playerBody.velocity.set(forward.x, forward.y, forward.z);
 
 
 		playerDebugMesh.position.copy(playerBody.position);
