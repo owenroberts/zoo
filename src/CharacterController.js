@@ -99,7 +99,9 @@ function CharacterController(scene, camera, physicsEngine) {
 	playerDebugMesh.position.copy(playerBody.position);
 	scene.add(playerDebugMesh);	
 
-	const acceleration = new THREE.Vector3(1, 1, 10.0);
+	const decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
+	const acceleration = new THREE.Vector3(1000, 1, 1500.0);
+	const velocity = new THREE.Vector3(0, 0, 0);
 
 
 	this.update = function(timeElapsed) {
@@ -108,20 +110,60 @@ function CharacterController(scene, camera, physicsEngine) {
 		if (stateMachine) stateMachine.update(timeInSeconds, input);
 		if (mixer) mixer.update(timeInSeconds);
 
-		const v = new THREE.Vector3();
+		const v = velocity;
+		const frameDecceleration = new THREE.Vector3(
+			v.x * decceleration.x,
+			v.y * decceleration.y,
+			v.z * decceleration.z
+		);
+		frameDecceleration.multiplyScalar(timeInSeconds);
+		frameDecceleration.z = Math.sign(frameDecceleration.z) * Math.min(
+			Math.abs(frameDecceleration.z), Math.abs(velocity.z));
+
+		v.add(frameDecceleration);
+
+		const controlObject = character;
+		const _Q = new THREE.Quaternion();
+		const _A = new THREE.Vector3();
+		const _R = controlObject.quaternion.clone();
+
 		if (input.forward) {
 			v.z += acceleration.z * timeInSeconds;
 		}
 		if (input.backward) {
 			v.z -= acceleration.z * timeInSeconds;
 		}
+		if (input.left) {
+			_A.set(0, 1, 0);
+			_Q.setFromAxisAngle(_A, Math.PI * timeInSeconds * acceleration.y);
+			_R.multiply(_Q);
+		}
+		if (input.right) {
+			_A.set(0, 1, 0);
+			_Q.setFromAxisAngle(_A, -Math.PI * timeInSeconds * acceleration.y);
+			_R.multiply(_Q);
+		}
 
 		const forward = new THREE.Vector3(0, 0, 1);
-		forward.applyQuaternion(playerBody.quaternion);
+		forward.applyQuaternion(controlObject.quaternion);
 		forward.normalize();
-		forward.multiplyScalar(v.z * timeElapsed);
 
-		playerBody.velocity.set(forward.x, forward.y, forward.z);
+		const sideways = new THREE.Vector3(1, 0, 0);
+		sideways.applyQuaternion(controlObject.quaternion);
+		sideways.normalize();
+
+		forward.multiplyScalar(v.z * timeInSeconds);
+		sideways.multiplyScalar(v.x * timeInSeconds);
+		console.log(forward);
+
+		playerBody.velocity.x += forward.x;
+		playerBody.velocity.y += forward.y;
+		playerBody.velocity.z += forward.z;
+
+		playerBody.velocity.x += sideways.x;
+		playerBody.velocity.y += sideways.y;
+		playerBody.velocity.z += sideways.z;
+
 
 
 		playerDebugMesh.position.copy(playerBody.position);
