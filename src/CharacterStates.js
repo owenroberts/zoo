@@ -90,6 +90,14 @@ class DanceState extends SinglePlayState {
 	constructor(parent, name) {
 		super(parent, name, 'idle');
 	}
+
+	update(_, input) {
+		if (input.backward) {
+			this.parentStateMachine.set('back');
+		} else if (input.forward || input.left || input.right) {
+			this.parentStateMachine.set('walk');
+		}
+	}
 }
 
 class WalkState extends AnyState {

@@ -5,6 +5,7 @@ import { CharacterController } from './CharacterController';
 import { setupScene } from './SceneSetup';
 import { Physics } from './PhysicsEngine';
 import { ThirdPersonCamera } from './ThirdPersonCamera';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
@@ -28,11 +29,14 @@ function init() {
 
 	scene = setupScene();
 
+	const dpr = window.devicePixelRatio;
+	console.log('dpr', dpr);
 	renderer = new THREE.WebGLRenderer({ antialias: true });
-	renderer.setSize(w, w * h / w);
+	renderer.setSize(dpr * w, dpr * (w * h / w));
 	renderer.setClearColor(scene.fog.color);
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+	renderer.domElement.style.zoom = 1 / dpr;
 	document.body.appendChild(renderer.domElement);
 
 	stats = new Stats();
@@ -41,7 +45,8 @@ function init() {
 
 	cannnonPhysics = new Physics(scene);
 	playerControls = new CharacterController(scene, camera, cannnonPhysics);
-	thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
+	// thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
+	controls = new OrbitControls(camera, renderer.domElement);
 }
 
 let previousRAF = null;
@@ -52,20 +57,17 @@ function animate() {
 		renderer.render(scene, camera);
 		step(t - previousRAF);
 		previousRAF = t;
+		controls.update();
 		stats.update();
+		cannnonPhysics.update();
 	});
 }
 
 function step(timeElapsed) {
 	const timeElapsedS = timeElapsed * 0.001;
-	if (playerControls) {
-		playerControls.update(timeElapsedS);
-		if (cannnonPhysics && playerControls.isReady()) {
-			const position = playerControls.getPosition();
-			cannnonPhysics.update(position);
-		}
-	}
-	thirdPersonCamera.update(timeElapsedS);
+	if (playerControls) playerControls.update(timeElapsed);
+		
+	// thirdPersonCamera.update(timeElapsedS);
 }
 
 function onWindowResize() {
