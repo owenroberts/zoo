@@ -8,11 +8,11 @@ import { CharacterControllerInput } from './CharacterControllerInput';
 function CharacterController(scene, camera, physicsEngine) {
 	
 	let character, mixer, stateMachine;
+	let radius = 1, playerBody, playerDebugMesh, axesHelper, boundingBox;
 	const animations = {};
 	const input = new CharacterControllerInput();
 
 	const modelContainer = new THREE.Group(); // used to ground character
-	// modelContainer.position.y = -0.5;
 	scene.add(modelContainer);
 
 	let isLoaded = false;
@@ -22,10 +22,11 @@ function CharacterController(scene, camera, physicsEngine) {
 
 	loadModels();
 
-	function startStateMachine() {
+	function initCharacter() {
 		stateMachine = new CharacterFSM(animations);
 		stateMachine.set('idle');
 		isLoaded = true;
+		characterPhysics();
 	}
 
 	function loadModels() {
@@ -36,14 +37,20 @@ function CharacterController(scene, camera, physicsEngine) {
 			fbx.traverse(c => { c.castShadow = true; });
 			
 			character = fbx;
-			// scene.add(character);
+			
+			// const box = new THREE.Box3().setFromObject(character);
+			// boundingBox = new THREE.BoxHelper(character);
+
+			radius = 1; // calculate this later - with bounding box relative transform issue
+			character.position.y = -1;
 			modelContainer.add(character);
 			console.log(character);
+
 			mixer = new THREE.AnimationMixer(character);
 
 			const manager = new THREE.LoadingManager();
 			manager.onLoad = () => {
-				startStateMachine();
+				initCharacter();
 			}
 
 			function onLoad(name, anim) {
@@ -69,43 +76,61 @@ function CharacterController(scene, camera, physicsEngine) {
 	// get pos and rot for camera
 	this.getPosition = function() {
 		if (!character) return new THREE.Vector3();
-		return character.position;
+		return modelContainer.position;
 	};
 
 	this.getRotation = function() {
 		if (!character) return new THREE.Quaternion();
-		return character.quaternion;
+		return modelContainer.quaternion;
 	};
 
-	// physics
-	const radius = 1.3;
-	const sphereShape = new CANNON.Sphere(radius);
-	const physicsMaterial = new CANNON.Material('physics');
-	const playerBody = new CANNON.Body({ mass: 1, material: physicsMaterial });
-	playerBody.friction = 0.0;
-	playerBody.allowSleep = false;
-	playerBody.collisionFilterGroup = 2;
-	playerBody.fixedRotation = true;
-	playerBody.updateMassProperties();
-	playerBody.addShape(sphereShape);
-	playerBody.position.set(0, 5, 0);
-	playerBody.linearDamping = 0.9;
-	physicsEngine.addBody(playerBody);
+	function characterPhysics() {
+		const sphereShape = new CANNON.Sphere(radius);
+		const physicsMaterial = new CANNON.Material('physics');
+		playerBody = new CANNON.Body({ mass: 5, material: physicsMaterial });
+		playerBody.friction = 0.9;
+		playerBody.allowSleep = false;
+		playerBody.collisionFilterGroup = 2;
+		// playerBody.fixedRotation = true;
+		playerBody.updateMassProperties();
+		playerBody.addShape(sphereShape);
+		playerBody.position.set(0, 5, 0);
+		playerBody.linearDamping = 0.99;
+		playerBody.angularDamping = 0.99;
+		physicsEngine.addBody(playerBody);
 
-	console.log(playerBody);
+		axesHelper = new THREE.AxesHelper( 1 );
+		scene.add( axesHelper );
 
-	const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x22ffaa, wireframe: true });
-	const playerDebugMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), debugMaterial);
-	playerDebugMesh.position.copy(playerBody.position);
-	scene.add(playerDebugMesh);	
+		const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x22ffaa, wireframe: true });
+		playerDebugMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), debugMaterial);
+		playerDebugMesh.position.copy(playerBody.position);
+		scene.add(playerDebugMesh);
+		const contactNormal = new CANNON.Vec3();
+		const upAxis = new CANNON.Vec3(0, 1, 0);
+		playerBody.addEventListener('collide', ev => {
+			let contact = ev.contact;
+			if (contact.bi.id == playerBody.id)
+				contact.ni.negate(contactNormal);
+			else
+				contactNormal.copy(contact.ni);
+      
+			if (contactNormal.dot(upAxis) > 0.5)
+            	jumpCount = 0;
+		});
 
-	const decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0);
-	const acceleration = new THREE.Vector3(1000, 1, 1500.0);
+		console.log(playerBody);
+	}
+
+	const decceleration = new THREE.Vector3(-0.0005, -0.0001, -10.0);
+	const acceleration = new THREE.Vector3(5, 1, 1.0);
 	const velocity = new THREE.Vector3(0, 0, 0);
-
+	// let canJump = false;
+	let jumpCount = 0;
+	let jumpStarted = false;
 
 	this.update = function(timeElapsed) {
-		if (!character) return;
+		if (!character || !playerBody) return;
 		const timeInSeconds = timeElapsed * 0.001;
 		if (stateMachine) stateMachine.update(timeInSeconds, input);
 		if (mixer) mixer.update(timeInSeconds);
@@ -116,22 +141,32 @@ function CharacterController(scene, camera, physicsEngine) {
 			v.y * decceleration.y,
 			v.z * decceleration.z
 		);
-		frameDecceleration.multiplyScalar(timeInSeconds);
+		frameDecceleration.multiplyScalar(timeElapsed);
 		frameDecceleration.z = Math.sign(frameDecceleration.z) * Math.min(
 			Math.abs(frameDecceleration.z), Math.abs(velocity.z));
 
 		v.add(frameDecceleration);
 
-		const controlObject = character;
+		const controlObject = modelContainer;
 		const _Q = new THREE.Quaternion();
 		const _A = new THREE.Vector3();
 		const _R = controlObject.quaternion.clone();
 
+		if (input.space && !jumpStarted) {
+			if (jumpCount < 2) {
+				playerBody.velocity.y = 10;
+				jumpCount++;
+				jumpStarted = true;
+			}
+		} else if (!input.space && jumpStarted) {
+			jumpStarted = false;
+		}
+
 		if (input.forward) {
-			v.z += acceleration.z * timeInSeconds;
+			v.z += acceleration.z * timeElapsed;
 		}
 		if (input.backward) {
-			v.z -= acceleration.z * timeInSeconds;
+			v.z -= acceleration.z * timeElapsed;
 		}
 		if (input.left) {
 			_A.set(0, 1, 0);
@@ -144,6 +179,8 @@ function CharacterController(scene, camera, physicsEngine) {
 			_R.multiply(_Q);
 		}
 
+		controlObject.quaternion.copy(_R);
+
 		const forward = new THREE.Vector3(0, 0, 1);
 		forward.applyQuaternion(controlObject.quaternion);
 		forward.normalize();
@@ -154,7 +191,7 @@ function CharacterController(scene, camera, physicsEngine) {
 
 		forward.multiplyScalar(v.z * timeInSeconds);
 		sideways.multiplyScalar(v.x * timeInSeconds);
-		console.log(forward);
+		// console.log(forward);
 
 		playerBody.velocity.x += forward.x;
 		playerBody.velocity.y += forward.y;
@@ -164,7 +201,10 @@ function CharacterController(scene, camera, physicsEngine) {
 		playerBody.velocity.y += sideways.y;
 		playerBody.velocity.z += sideways.z;
 
+		axesHelper.position.copy(playerBody.position);
+		axesHelper.quaternion.copy(controlObject.quaternion);
 
+		modelContainer.position.copy(playerBody.position);
 
 		playerDebugMesh.position.copy(playerBody.position);
 		playerDebugMesh.quaternion.copy(playerBody.quaternion);

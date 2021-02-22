@@ -45,8 +45,8 @@ function init() {
 
 	cannnonPhysics = new Physics(scene);
 	playerControls = new CharacterController(scene, camera, cannnonPhysics);
-	// thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
-	controls = new OrbitControls(camera, renderer.domElement);
+	thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
+	// controls = new OrbitControls(camera, renderer.domElement);
 }
 
 let previousRAF = null;
@@ -57,7 +57,7 @@ function animate() {
 		renderer.render(scene, camera);
 		step(t - previousRAF);
 		previousRAF = t;
-		controls.update();
+		// controls.update();
 		stats.update();
 		cannnonPhysics.update();
 	});
@@ -67,11 +67,11 @@ function step(timeElapsed) {
 	const timeElapsedS = timeElapsed * 0.001;
 	if (playerControls) playerControls.update(timeElapsed);
 		
-	// thirdPersonCamera.update(timeElapsedS);
+	thirdPersonCamera.update(timeElapsedS);
 }
 
 function onWindowResize() {
 	camera.aspect = window.innerWidth / window.innerHeight
 	camera.updateProjectionMatrix()
-	renderer.setSize(window.innerWidth, window.innerHeight)
+	renderer.setSize(dpr * w, dpr * (w * h / w))
 }

@@ -14,7 +14,7 @@ function setupScene() {
 	const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 	scene.add(ambientLight);
 
-	const spotlight = new THREE.SpotLight(0xffffff, 0.9, 0, Math.PI / 4, 1)
+	const spotlight = new THREE.SpotLight(0xffffff, 0.5, 0, Math.PI / 4, 1)
 	spotlight.position.set(10, 30, 20);
 	spotlight.target.position.set(0, 0, 0);
 	spotlight.castShadow = true;
@@ -25,8 +25,19 @@ function setupScene() {
 	spotlight.shadow.mapSize.height = 2048;
 	scene.add(spotlight);
 
-	const spotlight2 = new THREE.SpotLight(0xff33ff, 0.9, 0, Math.PI / 4, 1)
+	const spotlight2 = new THREE.SpotLight(0xff33ff, 0.5, 0, Math.PI / 4, 1)
 	spotlight2.position.set(-10, 30, -20);
+	spotlight2.target.position.set(0, 0, 0);
+	spotlight2.castShadow = true;
+	spotlight2.shadow.camera.near = 10;
+	spotlight2.shadow.camera.far = 100;
+	spotlight2.shadow.camera.fov = 30;
+	spotlight2.shadow.mapSize.width = 2048;
+	spotlight2.shadow.mapSize.height = 2048;
+	scene.add(spotlight2);
+
+	const spotlight3 = new THREE.SpotLight(0x11eeff, 0.5, 0, Math.PI / 4, 1)
+	spotlight2.position.set(-10, 30, 20);
 	spotlight2.target.position.set(0, 0, 0);
 	spotlight2.castShadow = true;
 	spotlight2.shadow.camera.near = 10;
