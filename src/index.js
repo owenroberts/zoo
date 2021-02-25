@@ -1,43 +1,44 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { CharacterController } from './CharacterController';
-import { setupScene } from './SceneSetup';
 import { Physics } from './PhysicsEngine';
 import { ThirdPersonCamera } from './ThirdPersonCamera';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
+
+import setupScene from './SceneSetup';
+
 // three.js variables
-let camera, scene, renderer, stats;
+let camera, scene, renderer, stats, dpr, w, h;
+let controls; // testing only
 let thirdPersonCamera;
-let controls;
 let cannnonPhysics;
 let playerControls;
+
 
 init();
 animate();
 
 function init() {
 	
-	const w = window.innerWidth;
-	const h = window.innerHeight;
-	const [fov, aspect, near, far] = [60, w / h, 1.0, 1000.0];
+	w = window.innerWidth;
+	h = window.innerHeight;
+	const [fov, aspect, near, far] = [60, w / h, 1.0, 2000.0];
 	camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 	camera.position.set(5, 5, 5);
 
-	scene = setupScene();
-
-	const dpr = window.devicePixelRatio;
-	console.log('dpr', dpr);
+	dpr = window.devicePixelRatio;
 	renderer = new THREE.WebGLRenderer({ antialias: true });
 	renderer.setSize(dpr * w, dpr * (w * h / w));
-	renderer.setClearColor(scene.fog.color);
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 	renderer.domElement.style.zoom = 1 / dpr;
+	renderer.outputEncoding = THREE.sRGBEncoding;
+	renderer.toneMappingExposure = 0.5;
 	document.body.appendChild(renderer.domElement);
+
+	scene = setupScene();
+	renderer.setClearColor(scene.fog.color);
 
 	stats = new Stats();
 	document.body.appendChild(stats.dom);

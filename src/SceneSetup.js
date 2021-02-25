@@ -3,59 +3,75 @@
 */
 
 import * as THREE from 'three';
+import { Sky } from 'three/examples/jsm/objects/Sky';
 
-
-function setupScene() {
+export default function setupScene() {
 
 	const scene = new THREE.Scene();
 	
-	scene.fog = new THREE.Fog(0x000000, 0, 500);
+	scene.background = new THREE.Color().setHSL( 0.6, 0, 1 );
+	// scene.background = new THREE.Color( 0x000000 );
+	scene.fog = new THREE.Fog( scene.background, 1, 1200 );
 
-	const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+	const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
 	scene.add(ambientLight);
 
-	const spotlight = new THREE.SpotLight(0xffffff, 0.5, 0, Math.PI / 4, 1)
-	spotlight.position.set(10, 30, 20);
-	spotlight.target.position.set(0, 0, 0);
-	spotlight.castShadow = true;
-	spotlight.shadow.camera.near = 10;
-	spotlight.shadow.camera.far = 100;
-	spotlight.shadow.camera.fov = 30;
-	spotlight.shadow.mapSize.width = 2048;
-	spotlight.shadow.mapSize.height = 2048;
-	scene.add(spotlight);
+	const sky = new Sky();
+	sky.scale.setScalar( 450000 );
+	scene.add( sky );
 
-	const spotlight2 = new THREE.SpotLight(0xff33ff, 0.5, 0, Math.PI / 4, 1)
-	spotlight2.position.set(-10, 30, -20);
-	spotlight2.target.position.set(0, 0, 0);
-	spotlight2.castShadow = true;
-	spotlight2.shadow.camera.near = 10;
-	spotlight2.shadow.camera.far = 100;
-	spotlight2.shadow.camera.fov = 30;
-	spotlight2.shadow.mapSize.width = 2048;
-	spotlight2.shadow.mapSize.height = 2048;
-	scene.add(spotlight2);
+	const sun = new THREE.Vector3();
 
-	const spotlight3 = new THREE.SpotLight(0x11eeff, 0.5, 0, Math.PI / 4, 1)
-	spotlight2.position.set(-10, 30, 20);
-	spotlight2.target.position.set(0, 0, 0);
-	spotlight2.castShadow = true;
-	spotlight2.shadow.camera.near = 10;
-	spotlight2.shadow.camera.far = 100;
-	spotlight2.shadow.camera.fov = 30;
-	spotlight2.shadow.mapSize.width = 2048;
-	spotlight2.shadow.mapSize.height = 2048;
-	scene.add(spotlight2);
+	const uniforms = sky.material.uniforms;
+	uniforms[ "turbidity" ].value = 10;
+	uniforms[ "rayleigh" ].value = 2;
+	uniforms[ "mieCoefficient" ].value = 0.02;
+	uniforms[ "mieDirectionalG" ].value = 0.7;
 
-	const material = new THREE.MeshLambertMaterial({ color: 0xdddddd });
-	const floorGeometry = new THREE.PlaneBufferGeometry(300, 300, 100, 100);
-	floorGeometry.rotateX(-Math.PI / 2);
-	const floor = new THREE.Mesh(floorGeometry, material);
-	// floor.position.y = -1;
-	floor.receiveShadow = true;
-	scene.add(floor);
+	const theta = Math.PI * ( 0.48 - 0.5 ); // inclination
+	const phi = 2 * Math.PI * ( 0.25 - 0.5 ); // azimuth
+
+	sun.x = Math.cos( phi );
+	sun.y = Math.sin( phi ) * Math.sin( theta );
+	sun.z = Math.sin( phi ) * Math.cos( theta );
+
+	uniforms[ "sunPosition" ].value.copy( sun );
+
+	// const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
+	const hemiLight = new THREE.HemisphereLight( 0x9e9e9e, 0xd9d9d9, 0.6 );
+	// hemiLight.color.setHSL( 0.6, 1, 0.6 );
+	// hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
+	hemiLight.position.set( 0, 50, 0 );
+	scene.add( hemiLight );
+
+	const dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
+	dirLight.color.setHSL( 0.1, 1, 0.95 );
+	dirLight.position.set( - 1, 1.75, 1 );
+	dirLight.position.multiplyScalar( 30 );
+	scene.add( dirLight );
+
+	dirLight.castShadow = true;
+
+	dirLight.shadow.mapSize.width = 2048;
+	dirLight.shadow.mapSize.height = 2048;
+
+	const d = 50;
+
+	dirLight.shadow.camera.left = - d;
+	dirLight.shadow.camera.right = d;
+	dirLight.shadow.camera.top = d;
+	dirLight.shadow.camera.bottom = - d;
+
+	dirLight.shadow.camera.far = 3500;
+	dirLight.shadow.bias = - 0.0001;
+	
+	const groundGeo = new THREE.PlaneGeometry( 10000, 10000 );
+	const groundMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+	groundMat.color.setHSL( 0.095, 1, 0.75 );
+	const ground = new THREE.Mesh( groundGeo, groundMat );
+	ground.rotation.x = - Math.PI / 2;
+	ground.receiveShadow = true;
+	scene.add(ground);
 
 	return scene;
 }
-
-export { setupScene };

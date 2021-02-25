@@ -1,15 +1,18 @@
 import { LoopOnce } from 'three';
 import { FiniteStateMachine, State } from './FiniteStateMachine';
+import { choice } from './Cool';
 
 class CharacterFSM extends FiniteStateMachine {
 	constructor(animations) {
 		super();
 		this.animations = animations;
-		this.add('idle', IdleState);
-		this.add('walk', WalkState);
-		this.add('back', BackState);
-		this.add('run', RunState);
-		this.add('dance', DanceState);
+		this.add('Idle1', IdleState);
+		this.add('Idle2', IdleState);
+		this.add('Walk', WalkState);
+		this.add('Back', BackState);
+		this.add('Run', RunState);
+		this.add('Jump', JumpState);
+		// this.add('dance', DanceState);
 	}
 
 	getAction(state) {
@@ -77,71 +80,85 @@ class SinglePlayState extends AnyState {
 class IdleState extends AnyState {
 	update(_, input) {
 		if (input.backward) {
-			this.parentStateMachine.set('back');
+			this.parentStateMachine.set('Back');
 		} else if (input.forward || input.left || input.right) {
-			this.parentStateMachine.set('walk');
+			this.parentStateMachine.set('Walk');
 		} else if (input.space) {
-			this.parentStateMachine.set('dance');
+			this.parentStateMachine.set('Jump');
 		}
 	}
 }
 
 class DanceState extends SinglePlayState {
 	constructor(parent, name) {
-		super(parent, name, 'idle');
+		super(parent, name, choice('Idle1', 'Idle2'));
 	}
 
 	update(_, input) {
 		if (input.backward) {
-			this.parentStateMachine.set('back');
+			this.parentStateMachine.set('Back');
 		} else if (input.forward || input.left || input.right) {
-			this.parentStateMachine.set('walk');
+			this.parentStateMachine.set('Walk');
+		}
+	}
+}
+
+class JumpState extends SinglePlayState {
+	constructor(parent, name) {
+		super(parent, name, choice('Idle1', 'Idle2'));
+	}
+
+	update(_, input) {
+		if (input.backward) {
+			this.parentStateMachine.set('Back');
+		} else if (input.forward || input.left || input.right) {
+			this.parentStateMachine.set('Walk');
 		}
 	}
 }
 
 class WalkState extends AnyState {
 	constructor(parent, name) {
-		super(parent, name, ['run', 'back']);
+		super(parent, name, ['Run', 'Back']);
 	}
 
 	update(time, input) {
 		if (input.forward || input.left || input.right) {
 			if (input.shift) {
-				this.parentStateMachine.set('run');
+				this.parentStateMachine.set('Run');
 			}
 			return;
 		}
-		this.parentStateMachine.set('idle');
+		this.parentStateMachine.set(choice('Idle1', 'Idle2'));
 	}
 }
 
 class BackState extends AnyState {
 	constructor(parent, name) {
-		super(parent, name, ['walk']);
+		super(parent, name, ['Walk']);
 	}
 
 	update(time, input) {
 		if (input.backward || input.left || input.right) {
 			return;
 		}
-		this.parentStateMachine.set('idle');
+		this.parentStateMachine.set(choice('Idle1', 'Idle2'));
 	}
 }
 
 class RunState extends AnyState {
 	constructor(parent, name) {
-		super(parent, name, ['walk']);
+		super(parent, name, ['Walk']);
 	}
 
 	update(time, input) {
 		if (input.forward || input.left || input.right) {
 			if (!input.shift) {
-				this.parentStateMachine.set('walk');
+				this.parentStateMachine.set('Walk');
 			}
 			return;
 		}
-		this.parentStateMachine.set('idle');
+		this.parentStateMachine.set(choice('Idle1', 'Idle2'));
 	}
 }
 

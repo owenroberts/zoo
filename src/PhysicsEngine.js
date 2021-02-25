@@ -1,14 +1,14 @@
 /*
 	all physics related stuff
-	how to get player in here ... ?
 */
 
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
+import PhysicsObject from './PhysicsObject';
 
 function Physics(scene) {
 	
-	const material = new THREE.MeshLambertMaterial({ color: 0xdddddd });
+	const material = new THREE.MeshLambertMaterial({ color: 0x222222 });
 	const world = new CANNON.World();
 	world.defaultContactMaterial.contactEquationStiffness = 1e9;
 	world.defaultContactMaterial.contactEquationRelaxation = 4;
@@ -42,25 +42,19 @@ function Physics(scene) {
 	groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
 	world.addBody(groundBody);
 
-	const boxBodies = [];
-	const boxMeshes = [];
-	const halfExtents = new CANNON.Vec3(1, 1, 1);
-	const boxShape = new CANNON.Box(halfExtents);
-	const boxGeometry = new THREE.BoxBufferGeometry(halfExtents.x * 2, halfExtents.y * 2, halfExtents.z * 2);
+	const bodies = [];
 
-	for (let i = 0; i < 10; i++) {
-		for (let j = 0; j < 10; j++) {
-			const boxBody = new CANNON.Body({ mass: 0 });
-			boxBody.addShape(boxShape);
-			const boxMesh = new THREE.Mesh(boxGeometry, material);
-			boxBody.position.set(i * 2, j * 2, -10);
-			boxMesh.position.copy(boxBody.position);
-			boxMesh.castShadow = true;
-			boxMesh.receiveShadow = true;
-			world.addBody(boxBody);
-			scene.add(boxMesh);
-			boxBodies.push(boxBody);
-			boxMeshes.push(boxMesh);
+	for (let i = 0; i < 10; i += 2) {
+		for (let j = 0; j < 1; j += 2) {
+			const box = new PhysicsObject({
+				mass: 0,
+				material: material,
+				position: [i * 2, 0.5 + j * 2, 10],
+				size: 1,
+			});
+			world.addBody(box.body);
+			scene.add(box.mesh);
+			bodies.push(box);
 		}
 	}
 
@@ -74,10 +68,8 @@ function Physics(scene) {
 
 	this.update = function() {
 		world.step(dt);
-		// Update box positions
-		for (let i = 0; i < boxBodies.length; i++) {
-			boxMeshes[i].position.copy(boxBodies[i].position);
-			boxMeshes[i].quaternion.copy(boxBodies[i].quaternion);
+		for (let i = 0; i < bodies.length; i++) {
+			bodies[i].update();
 		}
 
 	};
