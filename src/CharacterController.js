@@ -19,7 +19,7 @@ function CharacterController(scene, camera, physicsEngine) {
 	const alpha = 5, beta = 5, gamma = 5;
 	const colors = new Uint8Array( 2 );
 	for ( let c = 0; c <= colors.length; c++) {
-		colors[c] = (c / colors.length) * 256;
+		colors[c] = 64 + (c / colors.length) * (256 - 64);
 	}
 	const gradientMap = new THREE.DataTexture( colors, colors.length, 1, THREE.LuminanceFormat );
 	gradientMap.minFilter = THREE.NearestFilter;
@@ -62,7 +62,7 @@ function CharacterController(scene, camera, physicsEngine) {
 			});
 			character.visible = false;
 
-			character.position.y = -1.2;
+			character.position.y = -1.25;
 			modelContainer.add(character);
 
 			mixer = new THREE.AnimationMixer(character);
@@ -74,21 +74,19 @@ function CharacterController(scene, camera, physicsEngine) {
 					action: action,
 				}
 			}
-
 			initCharacter();
-
 		});
 	}
 
 	// get pos and rot for camera
 	this.getPosition = function() {
 		if (!character) return new THREE.Vector3();
-		return modelContainer.position;
+		return modelContainer.position.clone();
 	};
 
 	this.getRotation = function() {
 		if (!character) return new THREE.Quaternion();
-		return modelContainer.quaternion;
+		return modelContainer.quaternion.clone();
 	};
 
 	const contactNormal = new CANNON.Vec3();
@@ -97,9 +95,9 @@ function CharacterController(scene, camera, physicsEngine) {
 	function characterPhysics() {
 		const box = new THREE.Box3().setFromObject(character);
 		boundingBox = new THREE.BoxHelper(character);
-		console.log(boundingBox.geometry.boundingSphere.radius);
-		console.log(boundingBox);
-		scene.add(boundingBox);
+		// console.log(boundingBox.geometry.boundingSphere.radius);
+		// console.log(boundingBox);
+		// scene.add(boundingBox);
 
 		radius = boundingBox.geometry.boundingSphere.radius;
 		
@@ -171,18 +169,18 @@ function CharacterController(scene, camera, physicsEngine) {
 		const _A = new THREE.Vector3();
 		const _R = controlObject.quaternion.clone();
 
-		if (input.space && !jumpStarted) {
+		if (input.jump && !jumpStarted) {
 			if (jumpCount < 2) {
 				playerBody.velocity.y = 20;
 				jumpCount++;
 				jumpStarted = true;
 			}
-		} else if (!input.space && jumpStarted) {
+		} else if (!input.jump && jumpStarted) {
 			jumpStarted = false;
 		}
 
 		const acc = acceleration.clone();
-		if (input.shift) {
+		if (input.run) {
 			acc.multiplyScalar(1 * (input.backward ? 1.5 : 2.0));
 		}
 

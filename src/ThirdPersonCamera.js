@@ -8,18 +8,20 @@ function ThirdPersonCamera(camera, target) {
 	document.addEventListener('keydown', ev => onKey(ev, true), false);
 	document.addEventListener('keyup', ev => onKey(ev, false), false);
 
-	const ideal = {
-		offsetOrigin: { x: -3, y: 6, z: -8, },
-		offset: { x: -3, y: 6, z: -8, },
-		look: { x: 0, y: 2, z: 0 },
-	};
-	const cameraOrbitSpeed = 5;
-	const camearMoveSpeed = 0.1;
+	const offsetOrigin = new THREE.Vector3(-3, 6, -8);
+	const offset = new THREE.Vector3(-3, 6, -8);
+	const lookOffset = new THREE.Vector3(0, 2, 0);
+	const orbitSpeed = 0.75;
+	const cameraMoveSpeed = 0.1;
+	const zoomSpeed = 0.5;
+	
 	const input = {
 		left: false,
 		right: false,
 		up: false,
 		down: false,
+		zoomIn: false,
+		zoomOut: false,
 	};
 
 	function onKey(event, isDown) {
@@ -36,45 +38,66 @@ function ThirdPersonCamera(camera, target) {
 			case 75: // k camera up
 				input.up = isDown;
 				break;
-			case 79: // o reset
+			case 186: // o reset
 				if (isDown) resetCameraPosition();
+				break;
+			case 85:
+				input.zoomOut = isDown;
+				break;
+			case 79:
+				input.zoomIn = isDown;
 				break;
 		}
 	}
 
 
-	function rotateCamera(toLeft) {
-		const radius = new THREE.Vector2(camera.position.x, camera.position.z)
-			.distanceTo(new THREE.Vector2(target.getPosition().x, target.getPosition().z));
-		let vec = new THREE.Vector2(camera.position.x, camera.position.z).sub(new THREE.Vector2(target.getPosition().x, target.getPosition().z));
-		let angle = Math.atan2(vec.x, vec.y) * (180 / Math.PI);
-		angle += cameraOrbitSpeed * (toLeft ? -1 : 1);
-		ideal.offset.x = radius * Math.sin(Math.PI * 2 * angle / 360);
-		ideal.offset.z = radius * Math.cos(Math.PI * 2 * angle / 360);
+	function rotateCamera(timeElapsed) {
+
+		const center = target.getPosition().add(lookOffset);
+		const position = offset.clone();
+		position.sub(center);
+		
+		const axis = new THREE.Vector3(0, 0, 0);
+		if (input.right || input.left) axis.y = 1;
+		else if (input.up || input.down) {
+			axis.x = 1;
+			axis.applyQuaternion(camera.quaternion.clone());
+		}
+		axis.normalize();
+		const theta = orbitSpeed * timeElapsed * ((input.left || input.down) ? -1 : 1);
+
+		position.applyAxisAngle(axis, theta);
+		position.add(center);
+		// position.rotateOnAxis(axis, theta);
+		offset.copy(position.clone());
+
+	}
+
+	function zoomCamera(timeElapsed) {
+		let zoom = input.zoomIn ? 1 - timeElapsed * zoomSpeed : 1 + timeElapsed * zoomSpeed;
+		let center = target.getPosition().add(lookOffset)
+		offset.sub(center).multiplyScalar(zoom).add(center);
 	}
 
 	function moveCamera(moveUp) {
 		// const radius = camera.position.distanceTo(new THREE.Vector3(0, 2, 0));
 		// let angle = camera.position.angleTo(new THREE.Vector3(0, 2, 0));
-		ideal.offset.y += camearMoveSpeed * (moveUp ? -1 : 1);
+		ideal.offset.y += cameraMoveSpeed * (moveUp ? -1 : 1);
 	}
 
 	function resetCameraPosition() {
-		ideal.offset.x = ideal.offsetOrigin.x;
-		ideal.offset.y = ideal.offsetOrigin.y;
-		ideal.offset.z = ideal.offsetOrigin.z;
+		offset.copy(offsetOrigin.clone());
 	}
 
 	function calculateIdealOffset() {
-		// const idealOffset = new THREE.Vector3(-3, 6, -8);
-		const idealOffset = new THREE.Vector3(ideal.offset.x, ideal.offset.y, ideal.offset.z);
+		const idealOffset = offset.clone();
 		idealOffset.applyQuaternion(target.getRotation());
 		idealOffset.add(target.getPosition());
 		return idealOffset;
 	}
 
 	function calculateIdealLookat() {
-		const idealLookAt = new THREE.Vector3(0, 2, 0);
+		const idealLookAt = lookOffset.clone();
 		idealLookAt.applyQuaternion(target.getRotation());
 		idealLookAt.add(target.getPosition());
 		return idealLookAt;
@@ -83,8 +106,8 @@ function ThirdPersonCamera(camera, target) {
 	this.update = function(timeElapsed) {
 
 		// update cam position // testing or feature?
-		if (input.left || input.right) rotateCamera(input.left);
-		if (input.up || input.down) moveCamera(input.up);
+		if (input.left || input.right || input.up || input.down) rotateCamera(timeElapsed);
+		if (input.zoomIn || input.zoomOut) zoomCamera(timeElapsed);
 
 		const idealOffset = calculateIdealOffset();
 		const idealLookAt = calculateIdealLookat();

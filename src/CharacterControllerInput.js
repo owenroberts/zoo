@@ -5,8 +5,8 @@ function CharacterControllerInput() {
 		backward: false,
 		left: false,
 		right: false,
-		space: false,
-		shift: false,
+		jump: false,
+		run: false,
 	};
 
 	for (const key in keys) {
@@ -35,10 +35,10 @@ function CharacterControllerInput() {
 				keys.right = isDown;
 				break;
 			case 16: // shift
-				keys.shift = isDown;
+				keys.run = isDown;
 				break;
 			case 32: // space
-				keys.space = isDown;
+				keys.jump = isDown;
 				break;
 			case 38: // up
 			case 37: // left

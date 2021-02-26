@@ -46,7 +46,7 @@ export default function setupScene() {
 
 	const dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
 	dirLight.color.setHSL( 0.1, 1, 0.95 );
-	dirLight.position.set( - 1, 1.75, 1 );
+	dirLight.position.set( 0.25, 1.75, -2 );
 	dirLight.position.multiplyScalar( 30 );
 	scene.add( dirLight );
 
