@@ -3,9 +3,9 @@ import { SinglePlayState } from './SinglePlayState';
 import { choice } from './Cool';
 
 class IdleState extends AnyState {
-	update(_, input) {
-		if (input.jump) {
-			this.parentStateMachine.set('Jump');
+	update(input, jump) {
+		if (jump.started) {
+			this.parentStateMachine.set('JumpStart');
 		} else if (input.backward) {
 			this.parentStateMachine.set('Back');
 		} else if (input.forward || input.left || input.right) {
@@ -14,19 +14,48 @@ class IdleState extends AnyState {
 	}
 }
 
-
-class JumpState extends SinglePlayState {
+class JumpStart extends SinglePlayState {
 	constructor(parent, name) {
-		super(parent, name, choice('Idle1', 'Idle2'));
+		super(parent, name);
 	}
 
-	// update(_, input) {
-	// 	if (input.backward) {
-	// 		this.parentStateMachine.set('Back');
-	// 	} else if (input.forward || input.left || input.right) {
-	// 		this.parentStateMachine.set('Walk');
-	// 	}
-	// }
+	update(input, jump) {
+		if (!input.jump) {
+			this.parentStateMachine.set('JumpMid');
+		}
+	}
+}
+
+class JumpMid extends AnyState {
+	constructor(parent, name) {
+		super(parent, name, );
+	}
+
+	update(input, jump, endOfJump) {
+		// console.log('endOfJump', endOfJump)
+		// if (jump.started) {
+		// 	this.parentStateMachine.set('JumpStart');
+		// 	return;
+		// }
+		if (endOfJump) {
+			this.parentStateMachine.set('JumpLand');
+		}
+	}
+}
+
+class JumpLand extends SinglePlayState {
+	constructor(parent, name) {
+		super(parent, name);
+	}
+	update(input, jump, endOfJump) {
+		if (jump.count > 0 && !endOfJump) {
+			this.parentStateMachine.set('JumpMid');
+			return;
+		}
+		if (!input.jump && jump.count === 0) {
+			this.parentStateMachine.set('Idle1');
+		}
+	}
 }
 
 class WalkState extends AnyState {
@@ -34,12 +63,11 @@ class WalkState extends AnyState {
 		super(parent, name, ['Run', 'Back']);
 	}
 
-	update(time, input) {
-		if (input.jump) {
-			this.parentStateMachine.set('Jump');
+	update(input, jump) {
+		if (jump.started) {
+			this.parentStateMachine.set('JumpStart');
 			return;
-		}
-		if (input.forward || input.left || input.right) {
+		} else if (input.forward || input.left || input.right) {
 			if (input.run) {
 				this.parentStateMachine.set('Run');
 			}
@@ -54,7 +82,7 @@ class BackState extends AnyState {
 		super(parent, name, ['Walk']);
 	}
 
-	update(time, input) {
+	update(input) {
 		if (input.backward || input.left || input.right) {
 			return;
 		}
@@ -67,12 +95,11 @@ class RunState extends AnyState {
 		super(parent, name, ['Walk']);
 	}
 
-	update(time, input) {
-		if (input.jump) {
-			this.parentStateMachine.set('Jump');
+	update(input, jump) {
+		if (jump.started) {
+			this.parentStateMachine.set('JumpStart');
 			return;
-		}
-		if (input.forward || input.left || input.right) {
+		} else if (input.forward || input.left || input.right) {
 			if (!input.run) {
 				this.parentStateMachine.set('Walk');
 			}
@@ -82,4 +109,4 @@ class RunState extends AnyState {
 	}
 }
 
-export { IdleState, JumpState, WalkState, BackState, RunState };
+export { IdleState, JumpStart, JumpMid, JumpLand, WalkState, BackState, RunState };
