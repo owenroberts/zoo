@@ -5,7 +5,7 @@ module.exports = {
 	entry: './src/index.js',
 	output: {
 		path: path.resolve(__dirname, 'public'),
-		filename: 'bundle.js',
+		filename: 'zoo.js',
 	},
 	performance: {
 		maxEntrypointSize: 1024000,

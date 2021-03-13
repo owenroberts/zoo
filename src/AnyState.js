@@ -7,6 +7,7 @@ class AnyState extends State {
 	}
 
 	enter(prevState, callback) {
+		// if (prevState) console.log(prevState.name, this.name);
 		const currentAction = this.parentStateMachine.getAction(this.name);
 		if (prevState) {
 			const prevAction = this.parentStateMachine.getAction(prevState.name);
@@ -19,7 +20,7 @@ class AnyState extends State {
 			currentAction.enabled = true;
 			currentAction.setEffectiveTimeScale(1.0);
 			currentAction.setEffectiveWeight(1.0);
-			currentAction.crossFadeFrom(prevAction, 0.5, true);
+			currentAction.crossFadeFrom(prevAction, 0.5, false);
 		}
 		currentAction.play();
 	}

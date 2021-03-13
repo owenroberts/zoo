@@ -5,17 +5,18 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import PhysicsObject from './PhysicsObject';
+import Ground from './Ground'
 
 function Physics(scene) {
+
+	const castList = []; // so character knows whens its on the ground -- raycast
 	
-	const material = new THREE.MeshLambertMaterial({ color: 0x222222 });
 	const world = new CANNON.World();
 	world.defaultContactMaterial.contactEquationStiffness = 1e9;
 	world.defaultContactMaterial.contactEquationRelaxation = 4;
 	world.gravity.set(0, -20, 0);
 	world.broadphase = new CANNON.SAPBroadphase(world);
 	world.allowSleep = true; // not sure what this means ... 
-
 
 	const solver = new CANNON.GSSolver();
 	solver.iterations = 7;
@@ -35,15 +36,16 @@ function Physics(scene) {
 
 	world.addContactMaterial(physics_physics);
 
-	// this just matches the floor?
-	const groundShape = new CANNON.Plane();
-	const groundBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
-	groundBody.addShape(groundShape);
-	groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
-	world.addBody(groundBody);
+	const ground = new Ground(physicsMaterial);
+	world.addBody(ground.body);
+	scene.add(ground.mesh);
+	ground.mesh.traverse(child => {
+		if (child.constructor.name == 'Mesh') castList.push(child);
+	});
+
 
 	const bodies = [];
-
+	const material = new THREE.MeshLambertMaterial({ color: 0x222222 });
 	for (let i = 0; i < 10; i += 2) {
 		for (let j = 0; j < 1; j += 2) {
 			const box = new PhysicsObject({
@@ -54,9 +56,16 @@ function Physics(scene) {
 			});
 			world.addBody(box.body);
 			scene.add(box.mesh);
+			box.mesh.traverse(child => {
+				if (child.constructor.name == 'Mesh') castList.push(child);
+			});
 			bodies.push(box);
 		}
 	}
+
+	this.getCastList = function() {
+		return castList;
+	};
 
 	this.addBody = function(body) {
 		world.addBody(body);
@@ -71,7 +80,6 @@ function Physics(scene) {
 		for (let i = 0; i < bodies.length; i++) {
 			bodies[i].update();
 		}
-
 	};
 }
 

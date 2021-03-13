@@ -15,7 +15,6 @@ let thirdPersonCamera;
 let cannnonPhysics;
 let playerControls;
 
-
 init();
 animate();
 
@@ -67,7 +66,6 @@ function animate() {
 function step(timeElapsed) {
 	const timeElapsedS = timeElapsed * 0.001;
 	if (playerControls) playerControls.update(timeElapsed);
-		
 	thirdPersonCamera.update(timeElapsedS);
 }
 

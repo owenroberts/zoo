@@ -1,15 +1,15 @@
 class FiniteStateMachine {
 	constructor() {
-		this._states = {};
-		this._current = null;
+		this.states = {};
+		this.current = null;
 	}
 
 	add(name, type) {
-		this._states[name] = type;
+		this.states[name] = type;
 	}
 
 	set(name) {
-		const prev = this._current;
+		const prev = this.current;
 		if (prev) {
 			if (prev.name == name) {
 				return;
@@ -17,14 +17,14 @@ class FiniteStateMachine {
 			prev.exit();
 		}
 
-		const state = new this._states[name](this, name);
-		this._current = state;
+		const state = new this.states[name](this, name);
+		this.current = state;
 		state.enter(prev);
 	}
 
-	update(timeElapsed, input) {
-		if (this._current) {
-			this._current.update(timeElapsed, input);
+	update(...args) {
+		if (this.current) {
+			this.current.update(...args);
 		}
 	}
 }

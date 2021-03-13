@@ -10,8 +10,9 @@ export default function setupScene() {
 	const scene = new THREE.Scene();
 	
 	scene.background = new THREE.Color().setHSL( 0.6, 0, 1 );
-	// scene.background = new THREE.Color( 0x000000 );
+	scene.background = new THREE.Color( 0x000000 );
 	scene.fog = new THREE.Fog( scene.background, 1, 1200 );
+	scene.fog.color.setHSL( 0.095, 0.6, 0.5 );
 
 	const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
 	scene.add(ambientLight);
@@ -39,8 +40,8 @@ export default function setupScene() {
 
 	// const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
 	const hemiLight = new THREE.HemisphereLight( 0x9e9e9e, 0xd9d9d9, 0.6 );
-	// hemiLight.color.setHSL( 0.6, 1, 0.6 );
-	// hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
+	hemiLight.color.setHSL( 0.6, 1, 0.6 );
+	hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
 	hemiLight.position.set( 0, 50, 0 );
 	scene.add( hemiLight );
 
@@ -65,13 +66,7 @@ export default function setupScene() {
 	dirLight.shadow.camera.far = 3500;
 	dirLight.shadow.bias = - 0.0001;
 	
-	const groundGeo = new THREE.PlaneGeometry( 10000, 10000 );
-	const groundMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-	groundMat.color.setHSL( 0.095, 1, 0.75 );
-	const ground = new THREE.Mesh( groundGeo, groundMat );
-	ground.rotation.x = - Math.PI / 2;
-	ground.receiveShadow = true;
-	scene.add(ground);
+	
 
 	return scene;
 }

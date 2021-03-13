@@ -8,9 +8,7 @@ class SinglePlayState extends AnyState {
 	}
 
 	enter(prevState) {
-		if (prevState.name == 'Run' || prevState.name == 'Walk') {
-			this.returnState = prevState.name;
-		}
+		// if (prevState) console.log(prevState.name, this.name);
 		const currentAction = this.parentStateMachine.getAction(this.name);
 		const mixer = currentAction.getMixer();
 		mixer.addEventListener('finished', () => {
@@ -24,8 +22,9 @@ class SinglePlayState extends AnyState {
 
 	finished() {
 		this.cleanup();
-		console.log('finished', this.returnState);
-		this.parentStateMachine.set(this.returnState);
+		if (this.returnState) {
+			this.parentStateMachine.set(this.returnState);
+		}
 	}
 
 	cleanup() {

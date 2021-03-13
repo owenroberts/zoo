@@ -5,12 +5,14 @@ import { CharacterFSM, IdleState, DanceState, WalkState, RunState } from './Char
 import { CharacterControllerInput } from './CharacterControllerInput';
 
 
-function CharacterController(scene, camera, physicsEngine) {
+function CharacterController(scene, camera, physicsEngine, castList) {
 	
 	let character, mixer, stateMachine;
 	let radius = 1, playerBody, playerDebugMesh, axesHelper, boundingBox;
 	const animations = {};
 	const input = new CharacterControllerInput();
+	const groundRaycaster = new THREE.Raycaster();
+	const groundRay = new THREE.Vector3(0, -1, 0);
 
 	const modelContainer = new THREE.Group(); // used to ground character
 	scene.add(modelContainer);
@@ -35,6 +37,15 @@ function CharacterController(scene, camera, physicsEngine) {
 		shininess: 0,
 		specular: new THREE.Color(0x00000),
 	});
+	const eyeMaterial = new THREE.MeshToonMaterial( {
+		color: 0xffffff,
+		gradientMap: gradientMap,
+		emissive: new THREE.Color(0x1e00ff),
+		skinning: true,
+		shininess: 0,
+		specular: new THREE.Color(0x00000),
+	});
+
 	// console.log(material);
 
 	loadModels();
@@ -57,7 +68,11 @@ function CharacterController(scene, camera, physicsEngine) {
 			character.traverse(c => {
 				if (c.constructor.name == 'SkinnedMesh') {
 					c.castShadow = true;
-					c.material = material;
+					if (c.material.name == 'EyeMaterial') {
+						c.material = eyeMaterial;
+					} else {
+						c.material = material;
+					}
 				}
 			});
 			character.visible = false;
@@ -80,12 +95,10 @@ function CharacterController(scene, camera, physicsEngine) {
 
 	// get pos and rot for camera
 	this.getPosition = function() {
-		if (!character) return new THREE.Vector3();
 		return modelContainer.position.clone();
 	};
 
 	this.getRotation = function() {
-		if (!character) return new THREE.Quaternion();
 		return modelContainer.quaternion.clone();
 	};
 
@@ -131,26 +144,25 @@ function CharacterController(scene, camera, physicsEngine) {
 
 	function playerCollision(ev) {
 		let contact = ev.contact;
-		if (contact.bi.id == playerBody.id)
+		if (contact.bi.id == playerBody.id) {
 			contact.ni.negate(contactNormal);
-		else
+		} else {
 			contactNormal.copy(contact.ni);
-		
-		if (contactNormal.dot(upAxis) > 0.5) jumpCount = 0;
+		}
+		if (contactNormal.dot(upAxis) > 0.5) jump.count = 0;
 	}
 
 	const decceleration = new THREE.Vector3(-0.0005, -0.0001, -10.0);
 	const acceleration = new THREE.Vector3(1, 1, 1.0);
 	const velocity = new THREE.Vector3(0, 0, 0);
-	// let canJump = false;
-	let jumpCount = 0;
-	let jumpStarted = false;
+	let jump = {
+		count: 0,
+		started: false,
+	};
 
 	this.update = function(timeElapsed) {
 		if (!character || !playerBody) return;
 		const timeInSeconds = timeElapsed * 0.001;
-		if (stateMachine) stateMachine.update(timeInSeconds, input);
-		if (mixer) mixer.update(timeInSeconds);
 
 		const v = velocity;
 		const frameDecceleration = new THREE.Vector3(
@@ -169,14 +181,16 @@ function CharacterController(scene, camera, physicsEngine) {
 		const _A = new THREE.Vector3();
 		const _R = controlObject.quaternion.clone();
 
-		if (input.jump && !jumpStarted) {
-			if (jumpCount < 2) {
-				playerBody.velocity.y = 20;
-				jumpCount++;
-				jumpStarted = true;
+		// almost there!
+
+		if (input.jump && !jump.started) {
+			if (jump.count < 2) {
+				jump.count++;
+				jump.started = true;
 			}
-		} else if (!input.jump && jumpStarted) {
-			jumpStarted = false;
+		} else if (!input.jump && jump.started) {
+			jump.started = false;
+			playerBody.velocity.y = 20;
 		}
 
 		const acc = acceleration.clone();
@@ -230,6 +244,20 @@ function CharacterController(scene, camera, physicsEngine) {
 
 		playerDebugMesh.position.copy(playerBody.position);
 		playerDebugMesh.quaternion.copy(playerBody.quaternion);
+
+		// check if player is about to hit ground
+		let endOfJump = false;
+		if (jump.count > 0 && playerBody.velocity.y < 5) {
+			groundRaycaster.set(modelContainer.position.clone(), groundRay.clone());
+			const intersects = groundRaycaster.intersectObjects(physicsEngine.getCastList());
+			for (let i = 0; i < intersects.length; i++) {
+				if (intersects[i].distance < 2.5) endOfJump = true;
+			}
+		}
+
+		// console.log(playerBody.velocity.y);
+		if (stateMachine) stateMachine.update(input, jump, endOfJump);
+		if (mixer) mixer.update(timeInSeconds);
 	};
 }
 
