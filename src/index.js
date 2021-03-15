@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { CharacterController } from './CharacterController';
 import { Physics } from './PhysicsEngine';
 import { ThirdPersonCamera } from './ThirdPersonCamera';
@@ -12,11 +13,16 @@ import setupScene from './SceneSetup';
 let camera, scene, renderer, stats, dpr, w, h;
 let controls; // testing only
 let thirdPersonCamera;
-let cannnonPhysics;
+let physics;
 let playerControls;
+let models = { letters: {} };
+console.log(models);
+loadModels();
 
-init();
-animate();
+function startThisMotherFucker() {
+	init();
+	animate();
+}
 
 function init() {
 	
@@ -43,10 +49,27 @@ function init() {
 	document.body.appendChild(stats.dom);
 	window.addEventListener('resize', onWindowResize);
 
-	cannnonPhysics = new Physics(scene);
-	playerControls = new CharacterController(scene, camera, cannnonPhysics);
+	physics = new Physics(scene, models);
+	playerControls = new CharacterController(scene, camera, physics);
 	thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
+
+	// debug 
 	// controls = new OrbitControls(camera, renderer.domElement);
+}
+
+function loadModels() {
+	const manager = new THREE.LoadingManager();
+	manager.onLoad = () => {
+		console.log('models loaded');
+		startThisMotherFucker();
+	};
+
+	const loader = new GLTFLoader(manager);
+	'ab'.split('').forEach(letter => {
+		loader.load(`./static/models/letters/${letter}.glb`, gltf => {
+			models.letters[letter] = gltf.scene;
+		});
+	});
 }
 
 let previousRAF = null;
@@ -57,9 +80,11 @@ function animate() {
 		renderer.render(scene, camera);
 		step(t - previousRAF);
 		previousRAF = t;
-		// controls.update();
 		stats.update();
-		cannnonPhysics.update();
+		physics.update();
+
+		// debig
+		// controls.update();
 	});
 }
 

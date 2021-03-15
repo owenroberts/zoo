@@ -3,68 +3,49 @@ import * as CANNON from 'cannon-es';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { CharacterFSM, IdleState, DanceState, WalkState, RunState } from './CharacterStates';
 import { CharacterControllerInput } from './CharacterControllerInput';
-
+import getToonMaterial from './ToonMaterial';
 
 function CharacterController(scene, camera, physicsEngine, castList) {
 	
 	let character, mixer, stateMachine;
-	let radius = 1, playerBody, playerDebugMesh, axesHelper, boundingBox;
+	let playerBody, playerDebugMesh, axesHelper, boundingBox;
+	let modelContainer, material, eyeMaterial;
+	
 	const animations = {};
 	const input = new CharacterControllerInput();
 	const groundRaycaster = new THREE.Raycaster();
 	const groundRay = new THREE.Vector3(0, -1, 0);
 
-	const modelContainer = new THREE.Group(); // used to ground character
-	scene.add(modelContainer);
+	init();
+	
+	function init() {
+		modelContainer = new THREE.Group(); // used to ground character
+		scene.add(modelContainer);
+		
+		material = getToonMaterial({
+			color: 0x6e619e,
+			skinning: true,
+			emissiveColor: 0x1e00ff,
+		});
 
-	// toon material - put this somewhere else if making lots of these (of same color)
-	const alpha = 5, beta = 5, gamma = 5;
-	const colors = new Uint8Array( 2 );
-	for ( let c = 0; c <= colors.length; c++) {
-		colors[c] = 64 + (c / colors.length) * (256 - 64);
-	}
-	const gradientMap = new THREE.DataTexture( colors, colors.length, 1, THREE.LuminanceFormat );
-	gradientMap.minFilter = THREE.NearestFilter;
-	gradientMap.magFilter = THREE.NearestFilter;
-	gradientMap.generateMipmaps = false;
-	const diffuseColor = new THREE.Color()
-		.setHSL(alpha, 0.5, gamma * 0.5 + 0.1).multiplyScalar(1 - beta * 0.2);
-	const material = new THREE.MeshToonMaterial( {
-		color: 0x6e619e,
-		gradientMap: gradientMap,
-		emissive: new THREE.Color(0x1e00ff),
-		skinning: true,
-		shininess: 0,
-		specular: new THREE.Color(0x00000),
-	});
-	const eyeMaterial = new THREE.MeshToonMaterial( {
-		color: 0xffffff,
-		gradientMap: gradientMap,
-		emissive: new THREE.Color(0x1e00ff),
-		skinning: true,
-		shininess: 0,
-		specular: new THREE.Color(0x00000),
-	});
+		eyeMaterial = getToonMaterial({
+			color: 0xffffff,
+			skinning: true,
+			emissiveColor: 0x1e00ff,
+		});
 
-	// console.log(material);
-
-	loadModels();
-
-	function initCharacter() {
-		stateMachine = new CharacterFSM(animations);
-		stateMachine.set('Idle1');
-		characterPhysics();
+		loadModels();
 	}
 
 	function loadModels() {
 		const loader = new GLTFLoader();
 		loader.setPath('./static/models/');
-		loader.load('zoo-1.glb', gltf => {
+		loader.load('zoo-2.glb', gltf => {
 			console.log(gltf);
 			
 			character = gltf.scene;
 			character.scale.setScalar(0.5);
-			character.rotation.y = -Math.PI * 0.66;
+			//
 			character.traverse(c => {
 				if (c.constructor.name == 'SkinnedMesh') {
 					c.castShadow = true;
@@ -77,7 +58,6 @@ function CharacterController(scene, camera, physicsEngine, castList) {
 			});
 			character.visible = false;
 
-			character.position.y = -1.25;
 			modelContainer.add(character);
 
 			mixer = new THREE.AnimationMixer(character);
@@ -89,32 +69,27 @@ function CharacterController(scene, camera, physicsEngine, castList) {
 					action: action,
 				}
 			}
-			initCharacter();
+			stateMachine = new CharacterFSM(animations);
+			stateMachine.set('Idle1');
+			characterPhysics();
 		});
 	}
-
-	// get pos and rot for camera
-	this.getPosition = function() {
-		return modelContainer.position.clone();
-	};
-
-	this.getRotation = function() {
-		return modelContainer.quaternion.clone();
-	};
-
-	const contactNormal = new CANNON.Vec3();
-	const upAxis = new CANNON.Vec3(0, 1, 0);
 
 	function characterPhysics() {
 		const box = new THREE.Box3().setFromObject(character);
 		boundingBox = new THREE.BoxHelper(character);
-		// console.log(boundingBox.geometry.boundingSphere.radius);
-		// console.log(boundingBox);
-		// scene.add(boundingBox);
+		// modelContainer.add(boundingBox);
 
-		radius = boundingBox.geometry.boundingSphere.radius;
+		const radius = (box.max.y - box.min.y) / 2;
+		character.position.y -= radius;
+
+		const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x22ffaa, wireframe: true });
+		playerDebugMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), debugMaterial);
+		scene.add(playerDebugMesh);
+
+		character.rotation.y = -Math.PI * 0.66;
 		
-		const sphereShape = new CANNON.Sphere(radius / 2);
+		const sphereShape = new CANNON.Sphere(radius);
 		const physicsMaterial = new CANNON.Material('physics');
 		playerBody = new CANNON.Body({ mass: 5, material: physicsMaterial });
 		playerBody.friction = 0.9;
@@ -130,17 +105,16 @@ function CharacterController(scene, camera, physicsEngine, castList) {
 
 		axesHelper = new THREE.AxesHelper( 1 );
 		scene.add( axesHelper );
-
-		const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x22ffaa, wireframe: true });
-		playerDebugMesh = new THREE.Mesh(new THREE.SphereGeometry(radius/2, 8, 8), debugMaterial);
-		playerDebugMesh.position.copy(playerBody.position);
-		scene.add(playerDebugMesh);
 		
 		playerBody.addEventListener('collide', playerCollision);
 		character.visible = true;
 
 		console.log(playerBody);
+
 	}
+
+	const contactNormal = new CANNON.Vec3();
+	const upAxis = new CANNON.Vec3(0, 1, 0);
 
 	function playerCollision(ev) {
 		let contact = ev.contact;
@@ -198,18 +172,18 @@ function CharacterController(scene, camera, physicsEngine, castList) {
 			acc.multiplyScalar(1 * (input.backward ? 1.5 : 2.0));
 		}
 
-		if (input.forward) {
+		if (input.forward && !input.jump) {
 			v.z += acc.z * timeElapsed;
 		}
-		if (input.backward) {
+		if (input.backward && !input.jump) {
 			v.z -= acc.z * timeElapsed;
 		}
-		if (input.left) {
+		if (input.left && !input.jump) {
 			_A.set(0, 1, 0);
 			_Q.setFromAxisAngle(_A, Math.PI * timeInSeconds * acc.y);
 			_R.multiply(_Q);
 		}
-		if (input.right) {
+		if (input.right && !input.jump) {
 			_A.set(0, 1, 0);
 			_Q.setFromAxisAngle(_A, -Math.PI * timeInSeconds * acc.y);
 			_R.multiply(_Q);
@@ -258,6 +232,15 @@ function CharacterController(scene, camera, physicsEngine, castList) {
 		// console.log(playerBody.velocity.y);
 		if (stateMachine) stateMachine.update(input, jump, endOfJump);
 		if (mixer) mixer.update(timeInSeconds);
+	};
+
+	// get pos and rot for camera
+	this.getPosition = function() {
+		return modelContainer.position.clone();
+	};
+
+	this.getRotation = function() {
+		return modelContainer.quaternion.clone();
 	};
 }
 

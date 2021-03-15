@@ -6,8 +6,10 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import PhysicsObject from './PhysicsObject';
 import Ground from './Ground'
+import Letter from './Letter';
+import { choice } from './Cool';
 
-function Physics(scene) {
+function Physics(scene, models) {
 
 	const castList = []; // so character knows whens its on the ground -- raycast
 	
@@ -30,7 +32,7 @@ function Physics(scene) {
 
 	const physicsMaterial = new CANNON.Material('physics');
 	const physics_physics = new CANNON.ContactMaterial(physicsMaterial, physicsMaterial, {
-		friction: 0.0,
+		friction: 0.1,
 		restitution: 0.3,
 	});
 
@@ -45,17 +47,18 @@ function Physics(scene) {
 
 
 	const bodies = [];
-	const material = new THREE.MeshLambertMaterial({ color: 0x222222 });
+	
 	for (let i = 0; i < 10; i += 2) {
 		for (let j = 0; j < 1; j += 2) {
-			const box = new PhysicsObject({
-				mass: 0,
-				material: material,
+			const box = new Letter({
+				model: models.letters[choice('a', 'b')].clone(),
+				mass: 1,
 				position: [i * 2, 0.5 + j * 2, 10],
 				size: 1,
 			});
 			world.addBody(box.body);
 			scene.add(box.mesh);
+			scene.add(box.helper);
 			box.mesh.traverse(child => {
 				if (child.constructor.name == 'Mesh') castList.push(child);
 			});
