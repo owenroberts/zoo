@@ -16,7 +16,6 @@ let thirdPersonCamera;
 let physics;
 let playerControls;
 let models = { letters: {} };
-console.log(models);
 loadModels();
 
 function startThisMotherFucker() {
@@ -65,7 +64,7 @@ function loadModels() {
 	};
 
 	const loader = new GLTFLoader(manager);
-	'ab'.split('').forEach(letter => {
+	'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => {
 		loader.load(`./static/models/letters/${letter}.glb`, gltf => {
 			models.letters[letter] = gltf.scene;
 		});

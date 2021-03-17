@@ -12,6 +12,7 @@ import { choice } from './Cool';
 function Physics(scene, models) {
 
 	const castList = []; // so character knows whens its on the ground -- raycast
+	const letters = 'abcdefghijklmnopqrstuvwxyz';
 	
 	const world = new CANNON.World();
 	world.defaultContactMaterial.contactEquationStiffness = 1e9;
@@ -50,14 +51,16 @@ function Physics(scene, models) {
 	
 	for (let i = 0; i < 10; i += 2) {
 		for (let j = 0; j < 1; j += 2) {
+			const letter = choice(...letters.split(''));
 			const box = new Letter({
-				model: models.letters[choice('a', 'b')].clone(),
-				mass: 1,
+				model: models.letters[letter].clone(),
+				mass: 5,
 				position: [i * 2, 0.5 + j * 2, 10],
 				size: 1,
+				helper: true,
 			});
 			world.addBody(box.body);
-			scene.add(box.mesh);
+			scene.add(box.container);
 			scene.add(box.helper);
 			box.mesh.traverse(child => {
 				if (child.constructor.name == 'Mesh') castList.push(child);

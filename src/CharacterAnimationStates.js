@@ -37,7 +37,7 @@ class JumpMid extends AnyState {
 		// 	this.parentStateMachine.set('JumpStart');
 		// 	return;
 		// }
-		if (endOfJump) {
+		if (endOfJump || jump.count == 0) {
 			this.parentStateMachine.set('JumpLand');
 		}
 	}
@@ -52,7 +52,7 @@ class JumpLand extends SinglePlayState {
 			this.parentStateMachine.set('JumpMid');
 			return;
 		}
-		if (!input.jump && jump.count === 0) {
+		if (jump.count === 0) {
 			this.parentStateMachine.set('Idle1');
 		}
 	}
@@ -82,8 +82,11 @@ class BackState extends AnyState {
 		super(parent, name, ['Walk']);
 	}
 
-	update(input) {
-		if (input.backward || input.left || input.right) {
+	update(input, jump) {
+		if (jump.started) {
+			this.parentStateMachine.set('JumpStart');
+			return;
+		} else if (input.backward || input.left || input.right) {
 			return;
 		}
 		this.parentStateMachine.set(choice('Idle1', 'Idle2'));

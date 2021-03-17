@@ -5,7 +5,7 @@ import { CharacterFSM, IdleState, DanceState, WalkState, RunState } from './Char
 import { CharacterControllerInput } from './CharacterControllerInput';
 import getToonMaterial from './ToonMaterial';
 
-function CharacterController(scene, camera, physicsEngine, castList) {
+function CharacterController(scene, camera, physicsEngine) {
 	
 	let character, mixer, stateMachine;
 	let playerBody, playerDebugMesh, axesHelper, boundingBox;
@@ -87,7 +87,9 @@ function CharacterController(scene, camera, physicsEngine, castList) {
 		playerDebugMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), debugMaterial);
 		scene.add(playerDebugMesh);
 
-		character.rotation.y = -Math.PI * 0.66;
+		// character.rotation.y = -Math.PI * 0.66;
+		character.rotation.y = -Math.PI * 0.5;
+
 		
 		const sphereShape = new CANNON.Sphere(radius);
 		const physicsMaterial = new CANNON.Material('physics');
@@ -123,7 +125,10 @@ function CharacterController(scene, camera, physicsEngine, castList) {
 		} else {
 			contactNormal.copy(contact.ni);
 		}
-		if (contactNormal.dot(upAxis) > 0.5) jump.count = 0;
+		if (contactNormal.dot(upAxis) > 0.5) {
+			jump.count = 0;
+			console.log('collision jump reset') 
+		}
 	}
 
 	const decceleration = new THREE.Vector3(-0.0005, -0.0001, -10.0);
@@ -157,13 +162,17 @@ function CharacterController(scene, camera, physicsEngine, castList) {
 
 		// almost there!
 
-		if (input.jump && !jump.started) {
-			if (jump.count < 2) {
-				jump.count++;
+		if (input.jump && !jump.started && jump.count < 2) {
+			if (jump.count == 0) {
 				jump.started = true;
+			}
+			else if (jump.count == 1) {
+				jump.count++;
+				playerBody.velocity.y = 20;
 			}
 		} else if (!input.jump && jump.started) {
 			jump.started = false;
+			jump.count++;
 			playerBody.velocity.y = 20;
 		}
 
@@ -220,7 +229,7 @@ function CharacterController(scene, camera, physicsEngine, castList) {
 		playerDebugMesh.quaternion.copy(playerBody.quaternion);
 
 		// check if player is about to hit ground
-		let endOfJump = false;
+		let endOfJump = false; 
 		if (jump.count > 0 && playerBody.velocity.y < 5) {
 			groundRaycaster.set(modelContainer.position.clone(), groundRay.clone());
 			const intersects = groundRaycaster.intersectObjects(physicsEngine.getCastList());
