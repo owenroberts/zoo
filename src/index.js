@@ -53,7 +53,7 @@ function init() {
 	thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
 
 	// debug 
-	// controls = new OrbitControls(camera, renderer.domElement);
+	controls = new OrbitControls(camera, renderer.domElement);
 }
 
 function loadModels() {
@@ -83,14 +83,14 @@ function animate() {
 		physics.update();
 
 		// debig
-		// controls.update();
+		controls.update();
 	});
 }
 
 function step(timeElapsed) {
 	const timeElapsedS = timeElapsed * 0.001;
 	if (playerControls) playerControls.update(timeElapsed);
-	thirdPersonCamera.update(timeElapsedS);
+	// thirdPersonCamera.update(timeElapsedS);
 }
 
 function onWindowResize() {

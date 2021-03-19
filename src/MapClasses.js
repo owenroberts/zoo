@@ -1,7 +1,6 @@
 /*
 	map classes
 */
-import { choice } from './Cool';
 
 class Axial {
 	constructor(x, y) {
@@ -42,22 +41,20 @@ class Hexagon extends Axial {
 		
 		// SE, S, SW, NW, N, NE
 		this.walls = [false, false, false, false, false, false];
+		
+		/*
+			makes walls around center and then petaling out, no doubles
+			based on staring at x = 1, top and going around, probably ways to reduce mathematically ...
+		*/
+		
 		let c = this.toCube();
-		if (c.y <= 0) this.walls[0] = true;
-		if (c.z >= 0) this.walls[1] = true;
-		if (c.x <= 0) this.walls[2] = true;
-		if (c.y >= 0) this.walls[3] = true;
-		if (c.z <= 0) this.walls[4] = true;
-		if (c.x >= 0) this.walls[5] = true;
-		// makes walls around center and then petaling out, no doubles
-		// based on staring at x = 1, top and going around, probably ways to reduce mathematically ...
+		this.walls[0] = c.y <= 0;
+		this.walls[1] = c.z >= 0;
+		this.walls[2] = c.x <= 0;
+		this.walls[3] = c.y >= 0;
+		this.walls[4] = c.z <= 0;
+		this.walls[5] = c.x >= 0;
 
-	}
-
-	getNeighbor(map) {
-		const neighbors = map.getNeighbors(this)
-			.filter(n => !n.visited);
-		return choice(...neighbors);
 	}
 }
 

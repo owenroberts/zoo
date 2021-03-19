@@ -5,29 +5,31 @@ import { choice } from './Cool';
 
 export default function HexMap(radius, cellSize) {
 	const self = this;
-	const hexes = [];
+	const grid = [];
 
 	for (let x = -radius; x <= radius; x++) {
 		for (let y = -radius; y <= radius; y++) {
 			for (let z = -radius; z <= radius; z++) {
-				if (x + y + z === 0) hexes.push(new Hexagon(x, y));
+				if (x + y + z === 0) grid.push(new Hexagon(x, y));
 			}
 		}
 	}
 
 	function buildMaze() {
 		const stack = [];
-		let current = self.getHexAt(new Axial(0, 0));
-		let next = current.getNeighbor(self); // make this just in here ... 
+		let current = getHexAt(new Axial(0, 0));
+		// let next = current.getNeighbor(self); // make this just in here ... 
+		let next = getNeighbor(current);
 		while (next) {
 			next.visited = true;
 			stack.push(current);
 			removeWalls(current, next);
 			current = next;
-			next = current.getNeighbor(self);
+			// next = current.getNeighbor(self);
+			next = getNeighbor(current);
 			while (!next && stack.length > 0) {
 				current = stack.pop();
-				next = current.getNeighbor(self);
+				next = getNeighbor(current);
 			}
 		}
 	}
@@ -66,15 +68,21 @@ export default function HexMap(radius, cellSize) {
 		}
 	}
 
-	this.getHexAt = function(a) {
+	function getHexAt(a) {
 		let hex;
-		hexes.some(h => {
+		grid.some(h => {
 			if (h.compareTo(a)) return hex = h;
 		});
-		return hex; // one liner?
-	};
+		return hex;
+	}
 
-	this.getNeighbors = function(a) {
+	function getNeighbor(hex) {
+		const neighbors = getNeighbors(hex)
+			.filter(n => !n.visited);
+		return choice(...neighbors);
+	}
+
+	function getNeighbors(a) {
 		const neighbors = [];
 		const directions = [
 			new Axial(a.x + 1, a.y), new Axial(a.x + 1, a.y - 1), new Axial(a.x, a.y - 1), 
@@ -82,7 +90,7 @@ export default function HexMap(radius, cellSize) {
 		];
 
 		directions.forEach(dir => {
-			let h = self.getHexAt(dir);
+			let h = getHexAt(dir);
 			if (h) neighbors.push(h);
 			// one liner?
 		});
@@ -93,13 +101,12 @@ export default function HexMap(radius, cellSize) {
 	buildMaze();
 
 	this.getHexes = function() {
-		return hexes;
+		return grid;
 	};
 
 	this.drawMap = function(scene, side) {
-		const hexes = hexMap.getHexes();
-		for (let i = 0; i < hexes.length; i++) {
-			const hex = hexes[i];
+		for (let i = 0; i < grid.length; i++) {
+			const hex = grid[i];
 			const width = side * 2;
 			const height = Math.sqrt(3) / 2 * width;
 			let { x, y } = hex.calculatePosition(width, height);
