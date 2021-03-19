@@ -32,10 +32,11 @@ export default class Letter {
 		this.mesh.position.y -= size.y / 2;
 
 		if (params.helper) {
-			this.helper = new THREE.Mesh(
+			this.container.add(new THREE.Mesh(
 				new THREE.BoxGeometry( size.x, size.y, size.z ),
-				new THREE.MeshBasicMaterial( { color: 0x00ffff, wireframe: true }),
-			);
+				new THREE.MeshBasicMaterial( { color: 0x00ffff, wireframe: true })
+			));
+			this.container.add(new THREE.AxesHelper(2));
 		}
 
 		const halfExtents = new CANNON.Vec3(size.x / 2, size.y / 2, size.z / 2);
@@ -44,17 +45,20 @@ export default class Letter {
 		this.body.addShape(shape);
 		this.body.position.set(...params.position);
 
+		this.body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), params.rotation - Math.PI / 2);
+		this.container.quaternion.copy(this.body.quaternion);
+
 		this.update();
 
 	}
 
 	update() {
 		this.container.position.copy(this.body.position);
-		this.container.quaternion.copy(this.body.quaternion);
+		// this.container.quaternion.copy(this.body.quaternion);
 
-		if (this.helper) {
-			this.helper.position.copy(this.body.position);
-			this.helper.quaternion.copy(this.body.quaternion);
-		}
+		// if (this.helper) {
+		// 	this.helper.position.copy(this.body.position);
+		// 	this.helper.quaternion.copy(this.body.quaternion);
+		// }
 	}
 }

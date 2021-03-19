@@ -112,7 +112,6 @@ function CharacterController(scene, camera, physicsEngine) {
 		character.visible = true;
 
 		console.log(playerBody);
-
 	}
 
 	const contactNormal = new CANNON.Vec3();
@@ -127,7 +126,6 @@ function CharacterController(scene, camera, physicsEngine) {
 		}
 		if (contactNormal.dot(upAxis) > 0.5) {
 			jump.count = 0;
-			console.log('collision jump reset') 
 		}
 	}
 

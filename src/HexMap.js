@@ -3,10 +3,9 @@ import * as CANNON from 'cannon-es';
 import { Hexagon, Axial, Cube } from './MapClasses';
 import { choice } from './Cool';
 
-export default function HexMap(radius, cellSize) {
-	const self = this;
+export default function HexMap(radius) {
+	
 	const grid = [];
-
 	for (let x = -radius; x <= radius; x++) {
 		for (let y = -radius; y <= radius; y++) {
 			for (let z = -radius; z <= radius; z++) {
@@ -18,14 +17,12 @@ export default function HexMap(radius, cellSize) {
 	function buildMaze() {
 		const stack = [];
 		let current = getHexAt(new Axial(0, 0));
-		// let next = current.getNeighbor(self); // make this just in here ... 
 		let next = getNeighbor(current);
 		while (next) {
 			next.visited = true;
 			stack.push(current);
 			removeWalls(current, next);
 			current = next;
-			// next = current.getNeighbor(self);
 			next = getNeighbor(current);
 			while (!next && stack.length > 0) {
 				current = stack.pop();
@@ -77,9 +74,8 @@ export default function HexMap(radius, cellSize) {
 	}
 
 	function getNeighbor(hex) {
-		const neighbors = getNeighbors(hex)
-			.filter(n => !n.visited);
-		return choice(...neighbors);
+		return choice(...getNeighbors(hex)
+			.filter(n => !n.visited));
 	}
 
 	function getNeighbors(a) {
@@ -92,13 +88,37 @@ export default function HexMap(radius, cellSize) {
 		directions.forEach(dir => {
 			let h = getHexAt(dir);
 			if (h) neighbors.push(h);
-			// one liner?
 		});
 
 		return neighbors;
 	};
 
-	buildMaze();
+	// buildMaze();
+
+	this.getWalls = function(sideLength) {
+		const walls = [];
+		for (let i = 0; i < grid.length; i++) {
+			const hex = grid[i];
+			const width = sideLength * 2;
+			const height = Math.sqrt(3) / 2 * width;
+			let { x, y } = hex.calculatePosition(width, height);
+			const points = [];
+			for (let a = 0; a < Math.PI * 2; a += Math.PI * 2 / 6) {
+				let sx = x + Math.cos(a) * sideLength;
+				let sy = y + Math.sin(a) * sideLength;
+				points.push(new THREE.Vector3(sx, 0, sy));
+			}
+			for (let j = 0; j < points.length - 1; j++) {
+				if (hex.walls[j]) {
+					let x = (points[j].x + points[j + 1].x) / 2;
+					let z = (points[j].z + points[j + 1].z) / 2;
+					let rotation = (j + (j + 1)) * Math.PI * 1 / 6 * -1;
+					walls.push({ x: x, z: z, rotation: rotation });
+				}
+			}
+		}
+		return walls;
+	};
 
 	this.getHexes = function() {
 		return grid;
