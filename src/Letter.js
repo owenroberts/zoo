@@ -11,7 +11,6 @@ export default class Letter {
 
 		this.container = new THREE.Group();
 
-
 		this.mesh = params.model;
 		this.mesh.traverse(child => {
 			if (child.constructor.name == 'Mesh') {
