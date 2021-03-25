@@ -91,7 +91,7 @@ export default function HexMap(radius) {
 		});
 
 		return neighbors;
-	};
+	}
 
 	// buildMaze();
 
@@ -113,11 +113,24 @@ export default function HexMap(radius) {
 					let x = (points[j].x + points[j + 1].x) / 2;
 					let z = (points[j].z + points[j + 1].z) / 2;
 					let rotation = (j + (j + 1)) * Math.PI * 1 / 6 * -1;
-					walls.push({ x: x, z: z, rotation: rotation });
+					walls.push({ x: x, z: z, rotation: rotation, key: hex.getKey() });
 				}
 			}
 		}
 		return walls;
+	};
+
+	this.getHexAtPosition = function(x, y, sideLength) {
+		let _x = x * 2/3 / sideLength;
+		let _y = (-x / 3 + Math.sqrt(3)/3 * y) / sideLength;
+		let a = new Axial(_x, _y).toCube().round().toAxial();
+		return getHexAt(a);
+	};
+
+	this.getHexAndNeighbors = function(x, y, sideLength) {
+		let hex = this.getHexAtPosition(x, y, sideLength);
+		let neighbors = getNeighbors(hex);
+		return [hex.getKey(), ...neighbors.map(n => n.getKey())];
 	};
 
 	this.getHexes = function() {

@@ -103,6 +103,8 @@ function CharacterController(scene, camera, physicsEngine) {
 		playerBody.position.set(0, 2, 0);
 		playerBody.linearDamping = 0.99;
 		playerBody.angularDamping = 0.99;
+		playerBody.collisionFilterGroup = 1;
+		playerBody.collisionFilterMask = 1;
 		physicsEngine.addBody(playerBody);
 
 		axesHelper = new THREE.AxesHelper( 1 );
@@ -228,13 +230,13 @@ function CharacterController(scene, camera, physicsEngine) {
 
 		// check if player is about to hit ground
 		let endOfJump = false; 
-		if (jump.count > 0 && playerBody.velocity.y < 5) {
-			groundRaycaster.set(modelContainer.position.clone(), groundRay.clone());
-			const intersects = groundRaycaster.intersectObjects(physicsEngine.getCastList());
-			for (let i = 0; i < intersects.length; i++) {
-				if (intersects[i].distance < 2.5) endOfJump = true;
-			}
-		}
+		// if (jump.count > 0 && playerBody.velocity.y < 5) {
+		// 	groundRaycaster.set(modelContainer.position.clone(), groundRay.clone());
+		// 	const intersects = groundRaycaster.intersectObjects(physicsEngine.getCastList());
+		// 	for (let i = 0; i < intersects.length; i++) {
+		// 		if (intersects[i].distance < 2.5) endOfJump = true;
+		// 	}
+		// }
 
 		// console.log(playerBody.velocity.y);
 		if (stateMachine) stateMachine.update(input, jump, endOfJump);

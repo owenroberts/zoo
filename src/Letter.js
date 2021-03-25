@@ -54,11 +54,6 @@ export default class Letter {
 
 	update() {
 		this.container.position.copy(this.body.position);
-		// this.container.quaternion.copy(this.body.quaternion);
-
-		// if (this.helper) {
-		// 	this.helper.position.copy(this.body.position);
-		// 	this.helper.quaternion.copy(this.body.quaternion);
-		// }
+		this.container.quaternion.copy(this.body.quaternion);
 	}
 }

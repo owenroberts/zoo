@@ -12,6 +12,10 @@ class Axial {
 		return new Cube(this.x, -this.x - this.y, this.y);
 	}
 
+	getKey() {
+    	return `${this.x} x ${this.y}`;
+  	}
+
 	compareTo(other) {
     	return (this.x == other.x && this.y == other.y);
   	}
@@ -30,6 +34,30 @@ class Cube {
 		this.x = x;
 		this.y = y;
 		this.z = z || -x-y;
+	}
+
+	toAxial() {
+		return new Axial(this.x, this.z);
+	}
+
+	round() {
+		let [cx, cy, cz] = [this.x, this.y, this.z];
+		this.x = Math.round(cx);
+		this.y = Math.round(cy);
+		this.z = Math.round(cz);
+
+		let xDiff = Math.abs(this.x - cx);
+		let yDiff = Math.abs(this.y - cy);
+		let zDiff = Math.abs(this.z - cz);
+
+		if (xDiff > yDiff && xDiff > zDiff) {
+			this.x = -this.y - this.z;
+		} else if (yDiff > zDiff) {
+			this.y = -this.x - this.z;
+		} else {
+			this.z = -this.x - this.y
+		}
+		return this;
 	}
 }
 

@@ -80,7 +80,7 @@ function animate() {
 		step(t - previousRAF);
 		previousRAF = t;
 		stats.update();
-		physics.update();
+		physics.update(t - previousRAF, playerControls.getPosition());
 
 		// debig
 		controls.update();
