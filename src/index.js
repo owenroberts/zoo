@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { CharacterController } from './CharacterController';
 import { Physics } from './PhysicsEngine';
 import { ThirdPersonCamera } from './ThirdPersonCamera';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { OrbitControls } from './OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 
@@ -16,6 +16,7 @@ let thirdPersonCamera;
 let physics;
 let playerControls;
 let models = { letters: {} };
+const cameraOffset = new THREE.Vector3(-3, 12, -8);
 loadModels();
 
 function startThisMotherFucker() {
@@ -29,7 +30,7 @@ function init() {
 	h = window.innerHeight;
 	const [fov, aspect, near, far] = [60, w / h, 1.0, 2000.0];
 	camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-	camera.position.set(5, 5, 5);
+	camera.position.copy(cameraOffset.clone());
 
 	dpr = window.devicePixelRatio;
 	renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -50,10 +51,12 @@ function init() {
 
 	physics = new Physics(scene, models);
 	playerControls = new CharacterController(scene, camera, physics);
-	thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
+	// thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
 
 	// debug 
 	controls = new OrbitControls(camera, renderer.domElement);
+	controls.enablePan = false;
+	// controls.enableZoom = false;
 }
 
 function loadModels() {
@@ -82,8 +85,10 @@ function animate() {
 		stats.update();
 		physics.update(t - previousRAF, playerControls.getPosition());
 
-		// debig
 		controls.update();
+		controls.goTo( playerControls.getPosition() ); 
+		// if (playerControls) controls.object.position.copy(playerControls.getPosition().add(cameraOffset.clone()));
+
 	});
 }
 
