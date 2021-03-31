@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import ModelLoader from './ModelLoader';
 import { CharacterController } from './CharacterController';
 import { Physics } from './PhysicsEngine';
 import { ThirdPersonCamera } from './ThirdPersonCamera';
@@ -9,24 +9,19 @@ import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 import setupScene from './SceneSetup';
 
-const modelPath = {
-	letters: './static/models/letters-2/',
-};
-
 // three.js variables
 let camera, scene, renderer, stats, dpr, w, h;
 let controls; // testing only
 let thirdPersonCamera;
 let physics;
 let playerControls;
-let models = { letters: {} };
-const cameraOffset = new THREE.Vector3(-6, 6, -8);
-loadModels();
 
-function startThisMotherFucker() {
+const cameraOffset = new THREE.Vector3(-6, 6, -8);
+
+const modelLoader = new ModelLoader(() => {
 	init();
 	animate();
-}
+});
 
 function init() {
 	
@@ -53,30 +48,14 @@ function init() {
 	document.body.appendChild(stats.dom);
 	window.addEventListener('resize', onWindowResize);
 
-	physics = new Physics(scene, models);
-	playerControls = new CharacterController(scene, camera, physics);
+	physics = new Physics(scene, modelLoader);
+	playerControls = new CharacterController(scene, physics, modelLoader);
 	// thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
 
 	// debug 
 	controls = new OrbitControls(camera, renderer.domElement);
 	controls.enablePan = false;
 	// controls.enableZoom = false;
-}
-
-function loadModels() {
-	const manager = new THREE.LoadingManager();
-	manager.onLoad = () => {
-		console.log('models loaded');
-		startThisMotherFucker();
-	};
-
-	const loader = new GLTFLoader(manager);
-	
-	'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => {
-		loader.load(`${modelPath.letters}${letter}.glb`, gltf => {
-			models.letters[letter] = gltf.scene;
-		});
-	});
 }
 
 let previousRAF = null;

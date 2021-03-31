@@ -12,7 +12,7 @@ const beckett = "Where now? Who now? When now? Unquestioning. I, say I. Unbeliev
 let count = 0;
 
 export default class Wall {
-	constructor(params, sideLength, models, groundVerts, showHelper) {
+	constructor(params, sideLength, modelLoader, groundVerts, showHelper) {
 		const { x, z, rotation, key } = params;
 		
 		let closestVert, vertDistance;
@@ -50,7 +50,8 @@ export default class Wall {
 				if (count >= beckett.length) count = 0;
 				if (alphabet.includes(letter.toLowerCase())) {
 
-					const mesh = models.letters[letter.toLowerCase()].clone();
+					const gltf = modelLoader.getModel('letters', letter.toLowerCase());
+					const mesh = gltf.scene.clone();
 					mesh.traverse(child => {
 						if (child.constructor.name == 'Mesh') {
 							child.castShadow = true;

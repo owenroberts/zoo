@@ -5,7 +5,7 @@ import { CharacterFSM, IdleState, DanceState, WalkState, RunState } from './Char
 import { CharacterControllerInput } from './CharacterControllerInput';
 import getToonMaterial from './ToonMaterial';
 
-function CharacterController(scene, camera, physicsEngine) {
+function CharacterController(scene, physics) {
 	
 	let character, mixer, stateMachine;
 	let playerBody, playerDebugMesh, axesHelper, boundingBox;
@@ -104,7 +104,7 @@ function CharacterController(scene, camera, physicsEngine) {
 		playerBody.angularDamping = 0.99;
 		playerBody.collisionFilterGroup = 1;
 		playerBody.collisionFilterMask = 1;
-		physicsEngine.addBody(playerBody);
+		physics.addBody(playerBody);
 
 		axesHelper = new THREE.AxesHelper( 1 );
 		scene.add( axesHelper );
@@ -233,7 +233,7 @@ function CharacterController(scene, camera, physicsEngine) {
 		let endOfJump = false; 
 		if (jump.count > 0 && playerBody.velocity.y < 5) {
 			groundRaycaster.set(modelContainer.position.clone(), groundRay.clone());
-			const intersects = groundRaycaster.intersectObjects(physicsEngine.getCastList());
+			const intersects = groundRaycaster.intersectObjects(physics.getCastList());
 			for (let i = 0; i < intersects.length; i++) {
 				if (intersects[i].distance < 2.5) endOfJump = true;
 			}
