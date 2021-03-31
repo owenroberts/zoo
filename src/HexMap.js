@@ -3,7 +3,7 @@ import * as CANNON from 'cannon-es';
 import { Hexagon, Axial, Cube } from './MapClasses';
 import { choice } from './Cool';
 
-export default function HexMap(radius) {
+export default function HexMap(radius, isMaze) {
 	
 	const grid = [];
 	for (let x = -radius; x <= radius; x++) {
@@ -93,7 +93,7 @@ export default function HexMap(radius) {
 		return neighbors;
 	}
 
-	// buildMaze();
+	if (isMaze) buildMaze();
 
 	this.getWalls = function(sideLength) {
 		const walls = [];

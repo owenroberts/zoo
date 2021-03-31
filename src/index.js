@@ -9,6 +9,10 @@ import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 import setupScene from './SceneSetup';
 
+const modelPath = {
+	letters: './static/models/letters-2/',
+};
+
 // three.js variables
 let camera, scene, renderer, stats, dpr, w, h;
 let controls; // testing only
@@ -16,7 +20,7 @@ let thirdPersonCamera;
 let physics;
 let playerControls;
 let models = { letters: {} };
-const cameraOffset = new THREE.Vector3(-3, 12, -8);
+const cameraOffset = new THREE.Vector3(-6, 6, -8);
 loadModels();
 
 function startThisMotherFucker() {
@@ -67,8 +71,9 @@ function loadModels() {
 	};
 
 	const loader = new GLTFLoader(manager);
+	
 	'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => {
-		loader.load(`./static/models/letters/${letter}.glb`, gltf => {
+		loader.load(`${modelPath.letters}${letter}.glb`, gltf => {
 			models.letters[letter] = gltf.scene;
 		});
 	});

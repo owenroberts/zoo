@@ -13,7 +13,7 @@ export default function Ground(physicsMaterial) {
 	let groundHeight = 3;
 	let xRandom = 4;
 	let yRandom = 4;
-	const sizeX = 64;
+	const sizeX = 16;
 	const sizeZ = sizeX;
 	const matrix = [];
 	// const noise = new Noise();
@@ -46,7 +46,7 @@ export default function Ground(physicsMaterial) {
 	this.body.quaternion.setFromEuler(-Math.PI / 2, 0, 0)
 	this.body.position.set(
 		(-(sizeX - 1) * heightfieldShape.elementSize) / 2,
-		-groundHeight * 2,
+		groundHeight * 2 - 3,
 		((sizeZ - 1) * heightfieldShape.elementSize) / 2,
 	);
 

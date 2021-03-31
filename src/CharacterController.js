@@ -44,8 +44,7 @@ function CharacterController(scene, camera, physicsEngine) {
 			console.log(gltf);
 			
 			character = gltf.scene;
-			character.scale.setScalar(0.5);
-			//
+			character.scale.setScalar(0.5); // set scale in blender? -- not sure
 			character.traverse(c => {
 				if (c.constructor.name == 'SkinnedMesh') {
 					c.castShadow = true;
@@ -100,7 +99,7 @@ function CharacterController(scene, camera, physicsEngine) {
 		// playerBody.fixedRotation = true;
 		playerBody.updateMassProperties();
 		playerBody.addShape(sphereShape);
-		playerBody.position.set(0, 2, 0);
+		playerBody.position.set(0, 10, 0);
 		playerBody.linearDamping = 0.99;
 		playerBody.angularDamping = 0.99;
 		playerBody.collisionFilterGroup = 1;
@@ -168,7 +167,7 @@ function CharacterController(scene, camera, physicsEngine) {
 			}
 			else if (jump.count == 1) {
 				jump.count++;
-				playerBody.velocity.y = 20;
+				playerBody.velocity.y = 30;
 			}
 		} else if (!input.jump && jump.started) {
 			jump.started = false;
@@ -230,13 +229,13 @@ function CharacterController(scene, camera, physicsEngine) {
 
 		// check if player is about to hit ground
 		let endOfJump = false; 
-		// if (jump.count > 0 && playerBody.velocity.y < 5) {
-		// 	groundRaycaster.set(modelContainer.position.clone(), groundRay.clone());
-		// 	const intersects = groundRaycaster.intersectObjects(physicsEngine.getCastList());
-		// 	for (let i = 0; i < intersects.length; i++) {
-		// 		if (intersects[i].distance < 2.5) endOfJump = true;
-		// 	}
-		// }
+		if (jump.count > 0 && playerBody.velocity.y < 5) {
+			groundRaycaster.set(modelContainer.position.clone(), groundRay.clone());
+			const intersects = groundRaycaster.intersectObjects(physicsEngine.getCastList());
+			for (let i = 0; i < intersects.length; i++) {
+				if (intersects[i].distance < 2.5) endOfJump = true;
+			}
+		}
 
 		// console.log(playerBody.velocity.y);
 		if (stateMachine) stateMachine.update(input, jump, endOfJump);
