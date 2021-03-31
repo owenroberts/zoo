@@ -49,34 +49,25 @@ function Physics(scene, models) {
 	world.addBody(ground.body);
 	scene.add(ground.mesh);
 	addToCastList(ground.mesh);
-	console.log('ground', ground.mesh);
 	ground.mesh.updateWorldMatrix();
 
-	let ray = new THREE.Raycaster(new THREE.Vector3(0, 7, 0), new THREE.Vector3(0, -1, 0));
-	console.log(ground.mesh.children[0])
-	let collisions = ray.intersectObject(ground.mesh.children[0]);
-	console.log('collisions', collisions);
+	// get height at verts to use for wall position
+	const groundVerts = ground.mesh.children[0].geometry.vertices.map(_v => {
+		const v = _v.clone();
+		v.applyMatrix4(ground.mesh.matrixWorld);
+		return new THREE.Vector3(v.x, v.y, v.z);
+	});
 
-
-	// ground.mesh.children[0].geometry.vertices.forEach(_v => {
-	// 	const v = _v.clone();
-	// 	v.applyMatrix4(ground.mesh.matrixWorld);
-	// 	const ax = new THREE.AxesHelper(1);
-	// 	ax.position.set(v.x, v.y, v.z);
-	// 	scene.add(ax);
-	// });
-
-	const wallBodies = [];
-	
-	const hexMap = new HexMap(1, false);
+	const wallBodies = []; // dont need this if walls dont move
+	const hexMap = new HexMap(2, true);
 	const sideLength = 16;
 	const walls = hexMap.getWalls(sideLength);
 	walls.forEach(params => {
-		const wall = new Wall(params, sideLength, models, ground.mesh, false);
+		const wall = new Wall(params, sideLength, models, groundVerts, false);
 		scene.add(wall.container);
 		world.addBody(wall.body);
-		// scene.add(wall.bodyMesh);
-		// addToCastList(wall.container);
+		// scene.add(wall.bodyMesh); // debug
+		addToCastList(wall.container);
 	});
 
 	function addToCastList(mesh) {

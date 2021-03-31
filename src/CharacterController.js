@@ -136,6 +136,8 @@ function CharacterController(scene, camera, physicsEngine) {
 	let jump = {
 		count: 0,
 		started: false,
+		firstJumpVelocity: 30,
+		secondJumpVelocity: 20,
 	};
 
 	this.update = function(timeElapsed) {
@@ -167,12 +169,12 @@ function CharacterController(scene, camera, physicsEngine) {
 			}
 			else if (jump.count == 1) {
 				jump.count++;
-				playerBody.velocity.y = 30;
+				playerBody.velocity.y = jump.firstJumpVelocity;
 			}
 		} else if (!input.jump && jump.started) {
 			jump.started = false;
 			jump.count++;
-			playerBody.velocity.y = 20;
+			playerBody.velocity.y = jump.secondJumpVelocity;
 		}
 
 		const acc = acceleration.clone();
