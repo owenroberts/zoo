@@ -4,6 +4,7 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import cloneGltf from './lib/three-clone-gltf.js';
 
 export default function ModelLoader(callback) {
 	
@@ -33,7 +34,11 @@ export default function ModelLoader(callback) {
 	});
 
 	this.getModel = function(type, key) {
-		return models[type][key];
+		return models[type][key].scene.clone();
+	};
+
+	this.getGLTF = function(type, key) {
+		return cloneGltf(models[type][key]);
 	};
 
 }

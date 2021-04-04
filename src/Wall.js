@@ -50,8 +50,7 @@ export default class Wall {
 				if (count >= beckett.length) count = 0;
 				if (alphabet.includes(letter.toLowerCase())) {
 
-					const gltf = modelLoader.getModel('letters', letter.toLowerCase());
-					const mesh = gltf.scene.clone();
+					const mesh = modelLoader.getModel('letters', letter.toLowerCase());
 					mesh.traverse(child => {
 						if (child.constructor.name == 'Mesh') {
 							child.castShadow = true;

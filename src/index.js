@@ -1,22 +1,24 @@
 import * as THREE from 'three';
 import ModelLoader from './ModelLoader';
 import { CharacterController } from './CharacterController';
+import { CharacterControllerInput } from './CharacterControllerInput';
 import { Physics } from './PhysicsEngine';
 import { ThirdPersonCamera } from './ThirdPersonCamera';
 import { OrbitControls } from './OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
-
-
+import CharacterAI from './CharacterAI';
+import { choice, random, chance } from './Cool';
 import setupScene from './SceneSetup';
 
 // three.js variables
 let camera, scene, renderer, stats, dpr, w, h;
-let controls; // testing only
+let controls;
+const cameraOffset = new THREE.Vector3(-6, 6, -8);
 let thirdPersonCamera;
 let physics;
-let playerControls;
+let playerInput, playerController;
+let AIs = [], numAIs = 3;
 
-const cameraOffset = new THREE.Vector3(-6, 6, -8);
 
 const modelLoader = new ModelLoader(() => {
 	init();
@@ -49,13 +51,21 @@ function init() {
 	window.addEventListener('resize', onWindowResize);
 
 	physics = new Physics(scene, modelLoader);
-	playerControls = new CharacterController(scene, physics, modelLoader);
+	playerInput = new CharacterControllerInput();
+	playerController = new CharacterController(scene, physics, modelLoader, playerInput);
 	// thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
-
-	// debug 
 	controls = new OrbitControls(camera, renderer.domElement);
 	controls.enablePan = false;
 	// controls.enableZoom = false;
+
+	for (let i = 0; i < numAIs; i++) {
+		const input = new CharacterAI();
+		const controller = new CharacterController(scene, physics, modelLoader, input, [random(6, 9), 10, random(6, 9)]);
+		AIs.push({
+			input: input,
+			controller: controller
+		});
+	}
 }
 
 let previousRAF = null;
@@ -64,22 +74,20 @@ function animate() {
 		if (previousRAF === null) previousRAF = t;
 		animate();
 		renderer.render(scene, camera);
-		step(t - previousRAF);
-		previousRAF = t;
-		stats.update();
-		physics.update(t - previousRAF, playerControls.getPosition());
-
+		const timeElapsed = t - previousRAF;
+		if (playerController) playerController.update(timeElapsed);
+		
+		for (let i = 0; i < AIs.length; i++) {
+			if (AIs[i].input) AIs[i].input.update(timeElapsed);
+			if (AIs[i].controller) AIs[i].controller.update(timeElapsed);
+		}
+		
+		physics.update(timeElapsed, playerController.getPosition());
 		controls.update();
-		controls.goTo( playerControls.getPosition() ); 
-		// if (playerControls) controls.object.position.copy(playerControls.getPosition().add(cameraOffset.clone()));
-
+		controls.goTo(playerController.getPosition()); 
+		stats.update();
+		previousRAF = t;
 	});
-}
-
-function step(timeElapsed) {
-	const timeElapsedS = timeElapsed * 0.001;
-	if (playerControls) playerControls.update(timeElapsed);
-	// thirdPersonCamera.update(timeElapsedS);
 }
 
 function onWindowResize() {

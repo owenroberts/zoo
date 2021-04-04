@@ -1,4 +1,6 @@
 function CharacterControllerInput() {
+
+	this.isAI = false;
 	
 	const keys = {
 		forward: false,

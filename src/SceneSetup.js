@@ -11,8 +11,8 @@ export default function setupScene() {
 	
 	scene.background = new THREE.Color().setHSL( 0.6, 0, 1 );
 	scene.background = new THREE.Color( 0x000000 );
-	scene.fog = new THREE.Fog( scene.background, 1, 1200 );
-	scene.fog.color.setHSL( 0.095, 0.6, 0.5 );
+	scene.fog = new THREE.Fog( scene.background, 1, 200 );
+	scene.fog.color.setHSL( 0.095, 0.4, 0.3 );
 
 	const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
 	scene.add(ambientLight);
