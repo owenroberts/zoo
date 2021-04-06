@@ -63,9 +63,9 @@ export default function Physics(scene, models) {
 	const walls = hexMap.getWalls(sideLength);
 	walls.forEach(params => {
 		const wall = new Wall(params, sideLength, models, groundVerts, false);
-		// scene.add(wall.container);
-		// world.addBody(wall.body);
-		// addToCastList(wall.container);
+		scene.add(wall.container);
+		world.addBody(wall.body);
+		addToCastList(wall.container);
 		// scene.add(wall.bodyMesh); // debug
 	});
 

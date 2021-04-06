@@ -15,10 +15,10 @@ export default function CharacterAI(input, controller, debug) {
 
 	// params for different types/species ?
 	const flockRadius = 10;
-	const threshold = 0.1;
+	const threshold = 0.5;
 	const alignLevel = 1; // smaller is more aligned
-	const centerLevel = 10; // smaller is more centered
-	const seperationLevel = 5; // smaller more seperate
+	const centerLevel = 20; // smaller is more centered
+	const seperationLevel = 10; // smaller more seperate
 
 	function steer(others) {
 		let alignment = new THREE.Vector3(); // alignment

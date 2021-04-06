@@ -14,8 +14,8 @@ import setupScene from './SceneSetup';
 // three.js variables
 let camera, scene, renderer, stats, dpr, w, h;
 let controls;
-const cameraOffset = new THREE.Vector3(-20, 80, -20);
-// const cameraOffset = new THREE.Vector3(-6, 6, -8);
+// const cameraOffset = new THREE.Vector3(-20, 80, -20);
+const cameraOffset = new THREE.Vector3(-6, 6, -8);
 let thirdPersonCamera;
 let physics;
 let playerInput, playerController;
@@ -54,7 +54,7 @@ function init() {
 
 	physics = new Physics(scene, modelLoader);
 	playerInput = new CharacterControllerInput();
-	// playerController = new CharacterController(scene, physics, modelLoader, playerInput);
+	playerController = new CharacterController(scene, physics, modelLoader, playerInput);
 	// thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
 	controls = new OrbitControls(camera, renderer.domElement);
 	controls.enablePan = false;
@@ -91,6 +91,7 @@ function animate() {
 		for (let i = 0; i < AIs.length; i++) {
 			aiProps.push(AIs[i].controller.getProps());
 		}
+		aiProps.push(playerController.getProps());
 
 		for (let i = 0; i < AIs.length; i++) {
 			AIs[i].update(Math.min(1000 / 10, timeElapsed), aiProps);
@@ -98,7 +99,7 @@ function animate() {
 		
 		physics.update(timeElapsed);
 		controls.update();
-		// controls.goTo(playerController.getPosition()); 
+		controls.goTo(playerController.getPosition()); 
 
 		stats.update();
 		previousRAF = t;
