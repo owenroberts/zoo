@@ -9,7 +9,7 @@ import cloneGltf from './lib/three-clone-gltf.js';
 export default function ModelLoader(callback) {
 	
 	const modelPath = {
-		letters: './static/models/letters-2/',
+		letters: './static/models/letters-2-low/',
 		characters: './static/models/characters/',
 	};
 	const models = { letters: {}, characters: {} };

@@ -11,7 +11,7 @@ import Ground from './Ground';
 // import Ground from './GroundFlat';
 
 
-function Physics(scene, models) {
+export default function Physics(scene, models) {
 
 	const castList = []; // so character knows whens its on the ground -- raycast
 	
@@ -35,17 +35,17 @@ function Physics(scene, models) {
 	const dt = 1 / 60;
 	let lastTime = performance.now();
 
-	const physicsMaterial = new CANNON.Material('physics');
-	const physics_physics = new CANNON.ContactMaterial(physicsMaterial, physicsMaterial, {
-		friction: 0.1,
-		restitution: 0.3,
-	});
+	// const physicsMaterial = new CANNON.Material('physics');
+	// const physics_physics = new CANNON.ContactMaterial(physicsMaterial, physicsMaterial, {
+	// 	friction: 0.1,
+	// 	restitution: 0.3,
+	// });
 
-	world.addContactMaterial(physics_physics);
+	// world.addContactMaterial(physics_physics);
 
 	scene.add(new THREE.AxesHelper(3));
 
-	const ground = new Ground(physicsMaterial);
+	const ground = new Ground();
 	world.addBody(ground.body);
 	scene.add(ground.mesh);
 	addToCastList(ground.mesh);
@@ -59,15 +59,15 @@ function Physics(scene, models) {
 	});
 
 	const wallBodies = []; // dont need this if walls dont move
-	const hexMap = new HexMap(2, true);
+	const hexMap = new HexMap(3, true);
 	const sideLength = 16;
 	const walls = hexMap.getWalls(sideLength);
 	walls.forEach(params => {
 		const wall = new Wall(params, sideLength, models, groundVerts, false);
 		scene.add(wall.container);
 		world.addBody(wall.body);
-		// scene.add(wall.bodyMesh); // debug
 		addToCastList(wall.container);
+		// scene.add(wall.bodyMesh); // debug
 	});
 
 	function addToCastList(mesh) {
@@ -86,34 +86,7 @@ function Physics(scene, models) {
 		return castList;
 	};
 
-	this.update = function(time, playerPosition) {
-
-		let v = new THREE.Vector3(0, 7, 0);// playerPosition.clone();
-		// console.log(v);
-		let ray = new THREE.Raycaster(v, new THREE.Vector3(0, -1, 0));
-		let collisions = ray.intersectObject(ground.mesh.children[0]);
-		// console.log('collisions', collisions);
-		
-		// const hexKeys = hexMap.getHexAndNeighbors(playerPosition.x, playerPosition.z, sideLength);
-		// const nearByWalls = wallBodies.filter(b => hexKeys.includes(b.key));
-		// for (let i = 0; i < nearByWalls.length; i++) {
-		// 	nearByWalls[i].body.collisionFilterGroup = 1;
-		// 	nearByWalls[i].body.mass = 5;
-		// }
-
+	this.update = function(time) {
 		world.step(dt);
-
-		// for (let i = 0; i < nearByWalls.length; i++) {
-		// 	nearByWalls[i].body.collisionFilterGroup = 4;
-		// 	nearByWalls[i].body.mass = 0;
-		// 	nearByWalls[i].update();
-		// }
-
-		// for (let i = 0; i < wallBodies.length; i++) {
-		// 	wallBodies[i].update();
-		// }
-
 	};
 }
-
-export { Physics };

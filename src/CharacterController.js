@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { CharacterFSM, IdleState, DanceState, WalkState, RunState } from './CharacterStates';
 import { CharacterControllerInput } from './CharacterControllerInput';
 import getToonMaterial from './ToonMaterial';
-
+import { random } from './Cool';
 
 function CharacterController(scene, physics, modelLoader, input, position) {
 	
@@ -17,7 +17,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 	const upAxis = new CANNON.Vec3(0, 1, 0);
 
 	const decceleration = new THREE.Vector3(-0.0005, -0.0001, -10.0);
-	const acceleration = new THREE.Vector3(1, 1, 1.0);
+	const acceleration = new THREE.Vector3(0.5, 0.5, 1.0);
 	const velocity = new THREE.Vector3(0, 0, 0);
 	let jump = {
 		count: 0,
@@ -96,14 +96,20 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		// body.fixedRotation = true;
 		body.updateMassProperties();
 		body.addShape(sphereShape);
+
 		if (position) body.position.set(...position);
 		else body.position.set(0, 10, 0);
 
+		
 		body.linearDamping = 0.99;
 		body.angularDamping = 0.99;
 		body.collisionFilterGroup = 1;
 		body.collisionFilterMask = 1;
 		physics.addBody(body);
+
+		if (input.isAI) {
+			container.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), random(Math.PI * 2));
+		}
 
 		axesHelper = new THREE.AxesHelper( 1 );
 		scene.add( axesHelper );
@@ -121,8 +127,9 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		if (contactNormal.dot(upAxis) > 0.5) {
 			jump.count = 0;
 			if (input.isAI) input.onHitGround();
+		} else {
+			if (input.isAI) input.onHitWall();
 		}
-
 	}
 
 	this.update = function(timeElapsed) {
@@ -231,12 +238,18 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 
 	// get pos and rot for camera
 	this.getPosition = function() {
-		return container.position.clone();
+		return container.position.clone(); // using container vs body?
+		// actually not currently using this anywhere ...
 	};
 
 	this.getRotation = function() {
 		return container.quaternion.clone();
 	};
+
+	this.getVelocity = function() {
+		return body.velocity;
+	};
+
 }
 
 export { CharacterController };

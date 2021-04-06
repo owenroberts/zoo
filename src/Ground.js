@@ -8,7 +8,7 @@ import { bodyToMesh } from './lib/three-conversion-utils.js';
 import { random, map } from './Cool';
 // import Noise from './lib/perlin.js';
 
-export default function Ground(physicsMaterial) {
+export default function Ground() {
 
 	let groundHeight = 3;
 	let xRandom = 4;
@@ -41,7 +41,7 @@ export default function Ground(physicsMaterial) {
 	const heightfieldShape = new CANNON.Heightfield(matrix, {
 		elementSize: 300 / sizeX,
 	});
-	this.body = new CANNON.Body({ mass: 0, material: physicsMaterial });
+	this.body = new CANNON.Body({ mass: 0 });
 	this.body.addShape(heightfieldShape);
 	this.body.quaternion.setFromEuler(-Math.PI / 2, 0, 0)
 	this.body.position.set(

@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import ModelLoader from './ModelLoader';
+import Physics from './PhysicsEngine';
 import { CharacterController } from './CharacterController';
 import { CharacterControllerInput } from './CharacterControllerInput';
-import { Physics } from './PhysicsEngine';
 import { ThirdPersonCamera } from './ThirdPersonCamera';
 import { OrbitControls } from './OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
+import CharacterAIInput from './CharacterAIInput';
 import CharacterAI from './CharacterAI';
 import { choice, random, chance } from './Cool';
 import setupScene from './SceneSetup';
@@ -13,11 +14,11 @@ import setupScene from './SceneSetup';
 // three.js variables
 let camera, scene, renderer, stats, dpr, w, h;
 let controls;
-const cameraOffset = new THREE.Vector3(-6, 6, -8);
+const cameraOffset = new THREE.Vector3(-60, 60, -80);
 let thirdPersonCamera;
 let physics;
 let playerInput, playerController;
-let AIs = [], numAIs = 3;
+let AIs = [], numAIs = 20;
 
 
 const modelLoader = new ModelLoader(() => {
@@ -52,19 +53,18 @@ function init() {
 
 	physics = new Physics(scene, modelLoader);
 	playerInput = new CharacterControllerInput();
-	playerController = new CharacterController(scene, physics, modelLoader, playerInput);
+	// playerController = new CharacterController(scene, physics, modelLoader, playerInput);
 	// thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
 	controls = new OrbitControls(camera, renderer.domElement);
 	controls.enablePan = false;
+	controls.maxDistance = 50;
 	// controls.enableZoom = false;
 
 	for (let i = 0; i < numAIs; i++) {
-		const input = new CharacterAI();
-		const controller = new CharacterController(scene, physics, modelLoader, input, [random(6, 9), 10, random(6, 9)]);
-		AIs.push({
-			input: input,
-			controller: controller
-		});
+		const input = new CharacterAIInput();
+		const position = [random(-numAIs, numAIs), 8, random(-numAIs, numAIs)];
+		const controller = new CharacterController(scene, physics, modelLoader, input, position);
+		AIs.push(new CharacterAI(input, controller));
 	}
 }
 
@@ -78,13 +78,13 @@ function animate() {
 		if (playerController) playerController.update(timeElapsed);
 		
 		for (let i = 0; i < AIs.length; i++) {
-			if (AIs[i].input) AIs[i].input.update(timeElapsed);
-			if (AIs[i].controller) AIs[i].controller.update(timeElapsed);
+			AIs[i].update(timeElapsed, AIs);
 		}
 		
-		physics.update(timeElapsed, playerController.getPosition());
+		physics.update(timeElapsed);
 		controls.update();
-		controls.goTo(playerController.getPosition()); 
+		// controls.goTo(playerController.getPosition()); 
+
 		stats.update();
 		previousRAF = t;
 	});

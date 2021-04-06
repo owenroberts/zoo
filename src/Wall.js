@@ -26,14 +26,18 @@ export default class Wall {
 		}
 		const y = closestVert.y;
 
-		const distanceFromCenter = new THREE.Vector3(0, 0, 0).distanceTo(new THREE.Vector3(x, 0, z));
-		const h = distanceFromCenter / 5; // probably need a better way to determine this ... 
+		// const distanceFromCenter = new THREE.Vector3(0, 0, 0).distanceTo(new THREE.Vector3(x, 0, z));
+		// const h = distanceFromCenter / 5; // probably need a better way to determine this ... 
+		let h = key.split(' x ').reduce((n, s) => Math.abs(+n) + Math.abs(+s));
+		if (h === 0) h = 1;
+		h *= 3;
 
 		this.container = new THREE.Group();
 		this.container.position.set(x, y, z);
 		this.container.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), params.rotation - Math.PI / 2);
 
-		this.body = new CANNON.Body({ mass: 0 })
+		const groundMaterial = new CANNON.Material('ground')
+		this.body = new CANNON.Body({ mass: 0, groundMaterial })
         this.body.position.set(x, y, z);
         this.body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), params.rotation - Math.PI / 2);
 		
