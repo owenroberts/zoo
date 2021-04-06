@@ -14,11 +14,12 @@ import setupScene from './SceneSetup';
 // three.js variables
 let camera, scene, renderer, stats, dpr, w, h;
 let controls;
-const cameraOffset = new THREE.Vector3(-60, 60, -80);
+const cameraOffset = new THREE.Vector3(-20, 80, -20);
+// const cameraOffset = new THREE.Vector3(-6, 6, -8);
 let thirdPersonCamera;
 let physics;
 let playerInput, playerController;
-let AIs = [], numAIs = 20;
+let AIs = [], numAIs = 10;
 
 
 const modelLoader = new ModelLoader(() => {
@@ -60,11 +61,19 @@ function init() {
 	controls.maxDistance = 50;
 	// controls.enableZoom = false;
 
+	let x = 0, z = 0;
 	for (let i = 0; i < numAIs; i++) {
-		const input = new CharacterAIInput();
-		const position = [random(-numAIs, numAIs), 8, random(-numAIs, numAIs)];
+		const input = new CharacterAIInput(i == 0);
+		// const position = [random(x, x + 4), 8, random(z, z + 4)];
+		const position = [x, 8, z];
 		const controller = new CharacterController(scene, physics, modelLoader, input, position);
-		AIs.push(new CharacterAI(input, controller));
+		AIs.push(new CharacterAI(input, controller, i == 0));
+		x += 5;
+		if (x > 10) {
+			z += 5;
+			x = 0;	
+		}
+		
 	}
 }
 
@@ -77,8 +86,14 @@ function animate() {
 		const timeElapsed = t - previousRAF;
 		if (playerController) playerController.update(timeElapsed);
 		
+		// get ai data before update
+		const aiProps = [];
 		for (let i = 0; i < AIs.length; i++) {
-			AIs[i].update(timeElapsed, AIs);
+			aiProps.push(AIs[i].controller.getProps());
+		}
+
+		for (let i = 0; i < AIs.length; i++) {
+			AIs[i].update(Math.min(1000 / 10, timeElapsed), aiProps);
 		}
 		
 		physics.update(timeElapsed);
@@ -91,6 +106,8 @@ function animate() {
 }
 
 function onWindowResize() {
+	w = window.innerWidth;
+	h = window.innerHeight;
 	camera.aspect = window.innerWidth / window.innerHeight
 	camera.updateProjectionMatrix()
 	renderer.setSize(dpr * w, dpr * (w * h / w))

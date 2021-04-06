@@ -4,29 +4,11 @@
 
 import { choice, random, chance } from './Cool';
 
-class Action {
-	constructor(key, interval) {
-		this.key = key;
-		this.interval = interval * 10;
-		this.count = 0;
-		this.finished = false;
-	}
-
-	update(time) {
-		if (this.count < this.interval) {
-			this.count += time;
-		} else {
-			this.finished = true;
-		}
-		return !this.finished;
-	}
-}
-
-export default function CharacterAIInput() {
+export default function CharacterAIInput(debug) {
 
 	this.isAI = true;
 	
-	let actions = [];
+	let actions = {};
 	let isMoving = false;
 	const keys = {
 		forward: false,
@@ -63,13 +45,16 @@ export default function CharacterAIInput() {
 	}
 
 	this.update = function(timeElapsed) {
-		if (actions.every(a => a.finished) && isMoving) {
-			// addActions();
-		}
+		// if (actions.every(a => a.finished) && isMoving) {
+		// 	// addActions();
+		// }
 
-		for (let i = 0; i < actions.length; i++) {
-			let active = actions[i].update(timeElapsed);
-			keys[actions[i].key] = active;
+		for (const key in actions) {
+			actions[key].count += timeElapsed;
+			if (actions[key].count > actions[key].interval) {
+				keys[key] = false;
+				delete actions[key];
+			}
 		}
 	};
 
@@ -78,19 +63,25 @@ export default function CharacterAIInput() {
 	};
 
 	this.addAction = function(key, duration) {
-		actions.push(new Action(key, duration));
+		if (isMoving) {
+			keys[key] = true;
+			actions[key] = {
+				count: 0,
+				interval: duration * 100
+			};
+		}
 	};
 
 	// wait til char hits ground to move
 	this.onHitGround = function() {
 		if (!isMoving) {
 			isMoving = true;
-			keys.forward = true;
+			// keys.forward = true;
 		}
 	};
 
 	this.onHitWall = function() {
-		if (chance(0.5)) actions.push(new Action('jump', random(20, 40)));
+		if (chance(0.5)) this.addAction('jump', 1);
 	};
 
 

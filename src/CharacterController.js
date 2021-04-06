@@ -17,7 +17,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 	const upAxis = new CANNON.Vec3(0, 1, 0);
 
 	const decceleration = new THREE.Vector3(-0.0005, -0.0001, -10.0);
-	const acceleration = new THREE.Vector3(0.5, 0.5, 1.0);
+	const acceleration = new THREE.Vector3(0.25, 0.25, 1.0);
 	const velocity = new THREE.Vector3(0, 0, 0);
 	let jump = {
 		count: 0,
@@ -109,6 +109,8 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 
 		if (input.isAI) {
 			container.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), random(Math.PI * 2));
+			// container.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), Math.PI * 2);
+
 		}
 
 		axesHelper = new THREE.AxesHelper( 1 );
@@ -232,6 +234,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		}
 
 		// console.log(body.velocity.y);
+		// if (stateMachine.debug) console.log(input.forward);
 		if (stateMachine) stateMachine.update(input, jump, endOfJump);
 		if (mixer) mixer.update(timeInSeconds);
 	};
@@ -248,6 +251,20 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 
 	this.getVelocity = function() {
 		return body.velocity;
+	};
+
+	this.getProps = function() {
+		return {
+			id: body.id,
+			position: container.position.clone(),
+			velocity: body.velocity,
+			quaternion: container.quaternion.clone(),
+		};
+	};
+
+	this.setDebug = function() {
+		debugMesh.material = new THREE.MeshBasicMaterial({ color: 0xaaddff, wireframe: true });
+		stateMachine.debug = true;
 	};
 
 }

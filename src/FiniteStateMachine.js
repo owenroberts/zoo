@@ -2,6 +2,7 @@ class FiniteStateMachine {
 	constructor() {
 		this.states = {};
 		this.current = null;
+		this.debug = false;
 	}
 
 	add(name, type) {
@@ -9,6 +10,7 @@ class FiniteStateMachine {
 	}
 
 	set(name) {
+		// if (this.debug) console.log('new state', name, 'prev state', this.current.name);
 		const prev = this.current;
 		if (prev) {
 			if (prev.name == name) {

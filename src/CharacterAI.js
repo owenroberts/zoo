@@ -4,43 +4,40 @@
 
 import * as THREE from 'three';
 
-export default function CharacterAI(input, controller) {
-
-	console.log(this);
+export default function CharacterAI(input, controller, debug) {
+	const self = this;
 
 	this.isAI = true;
 	this.controller = controller;
-	// input.setKey('forward', true);
+	if (debug) {
+		controller.setDebug();
+	}
 
-	let flockRadius = 10;
-	let threshold = 0.5;
-	let centerLevel = 10; // smaller is more centered
+	// params for different types/species ?
+	const flockRadius = 10;
+	const threshold = 0.1;
+	const alignLevel = 1; // smaller is more aligned
+	const centerLevel = 10; // smaller is more centered
+	const seperationLevel = 5; // smaller more seperate
 
-	this.update = function(timeElapsed, others) {
-		if (input && controller) {
-			input.update(timeElapsed);
-			controller.update(timeElapsed);
-			this.flock(others);
-		}
-	};
-
-	function align(others) {
-		let steering = new THREE.Vector3(); // alignment
+	function steer(others) {
+		let alignment = new THREE.Vector3(); // alignment
 		let center = new THREE.Vector3(); // cohesion
 		let separation = new THREE.Vector3(); // separation
 		let total = 0;
+		let { id, position, velocity, quaternion } = controller.getProps();
 
 		for (let i = 0; i < others.length; i++) {
 			const other = others[i];
-			if (other.controller != controller) {
-				let distance = controller.getPosition().distanceTo(other.controller.getPosition());
+			if (other.id != id) {
+				let distance = position.distanceTo(other.position);
 				if (distance < flockRadius) {
 					total++;
-					steering.add(other.controller.getVelocity());
-					center.add(other.controller.getPosition());
+					alignment.add(other.velocity);
+					center.add(other.position);
 					
 					// const diff = other.controller.getPosition().sub(controller.getPosition());
-					const diff = controller.getPosition().sub(other.controller.getPosition());
+					const diff = other.position.clone().sub(position);
 					diff.divideScalar(distance);
 					separation.add(diff);
 				}
@@ -48,34 +45,47 @@ export default function CharacterAI(input, controller) {
 		}
 
 		if (total > 0) {
-			// console.log(center);
-			center.divideScalar(total);
-			center.sub(controller.getPosition());
-			center.divideScalar(10);
+			alignment.divideScalar(total);
+			alignment.divideScalar(alignLevel);
+			alignment.sub(velocity);
 
-			steering.divideScalar(total);
-			steering.sub(controller.getVelocity());
-			steering.add(center);
+			center.divideScalar(total);
+			center.sub(position);
+			center.divideScalar(centerLevel);
+			center.applyQuaternion(quaternion);
+			alignment.add(center);
 
 			separation.divideScalar(total);
-			separation.divideScalar(5);
-			steering.add(separation);
+			separation.divideScalar(seperationLevel);
+			alignment.add(separation);
 		} else {
 			return false;
 		}
-		return steering;
-	};
-
+		return alignment;
+	}
 
 	this.flock = function(others) {
-		const alignment = align(others);
+		const steering = steer(others);
 
-		if (alignment) {
-			if (alignment.z > threshold) input.addAction('left', 1);
-			else if (alignment.z < -threshold) input.addAction('right', 1);
+		if (steering) {
+			// if (debug) console.log(steering.z);
+			if (steering.z > threshold) {
+				input.addAction('left', 5);
+				input.addAction('forward', 10);
+			}
+			else if (steering.z < -threshold) {
+				input.addAction('right', 5);
+				input.addAction('forward', 10);
+			}
 		}
 	};
 
-	// steering -- add actions or apply force to body ??
+	this.update = function(timeElapsed, others) {
+		if (input && controller) {
+			this.flock(others);
+			input.update(timeElapsed);
+			controller.update(timeElapsed);
+		}
+	};
 
 }
