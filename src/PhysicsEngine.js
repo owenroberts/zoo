@@ -6,11 +6,11 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import PhysicsObject from './PhysicsObject';
 import Wall from './Wall';
-import HexMap from './HexMap';
+
 import Ground from './Ground';
 // import Ground from './GroundFlat';
 
-export default function Physics(scene, models) {
+export default function Physics(scene, hexMap, sideLength, models) {
 
 	const castList = []; // so character knows whens its on the ground -- raycast
 	
@@ -58,8 +58,6 @@ export default function Physics(scene, models) {
 	});
 
 	const wallBodies = []; // dont need this if walls dont move
-	const hexMap = new HexMap(3, true);
-	const sideLength = 16;
 	const walls = hexMap.getWalls(sideLength);
 	walls.forEach(params => {
 		const wall = new Wall(params, sideLength, models, groundVerts, false);

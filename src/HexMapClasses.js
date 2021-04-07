@@ -61,7 +61,6 @@ class Cube {
 	}
 }
 
-
 class Hexagon extends Axial {
 	constructor(x, y) {
 		super(x, y);

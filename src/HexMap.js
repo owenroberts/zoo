@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import { Hexagon, Axial, Cube } from './MapClasses';
+import { Hexagon, Axial, Cube } from './HexMapClasses';
 import { choice } from './Cool';
 
 export default function HexMap(radius, isMaze) {

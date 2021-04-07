@@ -10,10 +10,12 @@ import CharacterAIInput from './CharacterAIInput';
 import CharacterAI from './CharacterAI';
 import { choice, random, chance } from './Cool';
 import setupScene from './SceneSetup';
+import HexMap from './HexMap';
 
 // three.js variables
 let camera, scene, renderer, stats, dpr, w, h;
 let controls;
+let hexMap, sideLength = 16;
 // const cameraOffset = new THREE.Vector3(-20, 80, -20);
 const cameraOffset = new THREE.Vector3(-6, 6, -8);
 let thirdPersonCamera;
@@ -51,28 +53,35 @@ function init() {
 	document.body.appendChild(stats.dom);
 	window.addEventListener('resize', onWindowResize);
 
-	physics = new Physics(scene, modelLoader);
+	hexMap = new HexMap(3, true);
+
+	physics = new Physics(scene, hexMap, sideLength, modelLoader);
 	playerInput = new CharacterControllerInput();
 	playerController = new CharacterController(scene, physics, modelLoader, playerInput);
 	// thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
+	camera.lookAt(cameraOffset.clone());
 	controls = new OrbitControls(camera, renderer.domElement);
 	controls.enablePan = false;
+	controls.goTo(playerController.getPosition()); 
 	// controls.maxDistance = 50;
 	// controls.enableZoom = false;
+
+
+	console.log(hexMap);
 
 	let x = 0, z = 0;
 	for (let i = 0; i < numAIs; i++) {
 		const input = new CharacterAIInput(i == 0);
-		// const position = [random(x, x + 4), 8, random(z, z + 4)];
 		const position = [x, 8, z];
 		const controller = new CharacterController(scene, physics, modelLoader, input, position);
 		AIs.push(new CharacterAI(input, controller, i == 0));
-		x += 5;
-		if (x > 10) {
+		x += 10;
+		if (x > 30) {
 			z += 5;
 			x = 0;	
 		}
 	}
+
 }
 
 let previousRAF = null;
@@ -97,7 +106,7 @@ function animate() {
 		
 		physics.update(timeElapsed);
 		controls.update();
-		// controls.goTo(playerController.getPosition()); 
+		controls.goTo(playerController.getPosition()); 
 
 		stats.update();
 		previousRAF = t;

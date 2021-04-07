@@ -12,8 +12,9 @@ export default function ModelLoader(callback) {
 		letters: './static/models/letters-2-low/',
 		characters: './static/models/characters/',
 		buildings: './static/models/buildings/',
+		trees: './static/models/trees/',
 	};
-	const models = { letters: {}, characters: {}, buildings: {} };
+	const models = { letters: {}, characters: {}, buildings: {}, trees: {} };
 	const manager = new THREE.LoadingManager();
 	const loader = new GLTFLoader(manager);
 
@@ -23,6 +24,7 @@ export default function ModelLoader(callback) {
 	};
 
 	console.time('models loaded');
+
 	'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => {
 		loader.load(`${modelPath.letters}${letter}.glb`, gltf => {
 			models.letters[letter] = gltf;
@@ -35,11 +37,17 @@ export default function ModelLoader(callback) {
 		});
 	});
 
-	'abc'.split('').forEach(letter => {
+	'abcdefg'.split('').forEach(letter => {
 		loader.load(`${modelPath.buildings}building-${letter}.glb`, gltf => {
 			models.buildings[letter] = gltf;
-		})
-	})
+		});
+	});
+
+	'abcdef'.split('').forEach(letter => {
+		loader.load(`${modelPath.trees}tree-${letter}.glb`, gltf => {
+			models.trees[letter] = gltf;
+		});
+	});
 
 
 	this.getModel = function(type, key) {

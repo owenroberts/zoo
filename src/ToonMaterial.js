@@ -14,14 +14,16 @@ export default function getToonMaterial(params) {
 	gradientMap.minFilter = THREE.NearestFilter;
 	gradientMap.magFilter = THREE.NearestFilter;
 	gradientMap.generateMipmaps = false;
-
-	return new THREE.MeshToonMaterial({
+	const material = new THREE.MeshToonMaterial({
 		color: params.color || 0xffffff,
 		emissive: new THREE.Color(params.emissiveColor || 0x000000),
 		skinning: params.skinning || false,
 		specular: new THREE.Color(0x00000),
-		gradientMap: gradientMap,
+		// gradientMap: gradientMap,
 		shininess: 0,
+		// map: params.map,
 	});
+	if (params.map) material.map = params.map;
+	return material;
 
 }

@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import { Sky } from 'three/examples/jsm/objects/Sky';
 import getToonMaterial from './ToonMaterial';
-import { choice, random, chance } from './Cool';
+import { choice, random, chance, map, distance } from './Cool';
 
 export default function setupScene(modelLoader) {
 
@@ -13,15 +13,17 @@ export default function setupScene(modelLoader) {
 	
 	scene.background = new THREE.Color().setHSL( 0.6, 0, 1 );
 	scene.background = new THREE.Color( 0x000000 );
-	scene.fog = new THREE.Fog( scene.background, 1, 400 );
+	scene.fog = new THREE.Fog( scene.background, 1,300 );
 	scene.fog.color.setHSL( 0.095, 0.4, 0.3 );
-
-	const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
-	scene.add(ambientLight);
 
 	const sky = new Sky();
 	sky.scale.setScalar( 450000 );
 	scene.add( sky );
+
+
+// lighting
+	const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
+	scene.add(ambientLight);
 
 	const sun = new THREE.Vector3();
 
@@ -68,34 +70,94 @@ export default function setupScene(modelLoader) {
 	dirLight.shadow.camera.far = 3500;
 	dirLight.shadow.bias = - 0.0001;
 	
-	
-	// buildings
+// buildings
+	// add shadows -- https://discourse.threejs.org/t/shadow-for-instances/7947/10
 	const buildingMaterial = getToonMaterial({
 		color: 0xb6d1fc,
-		emissiveColor: 0x1e00ff,
+		// emissiveColor: 0x1e00ff,
 	});
 	const dummy = new THREE.Object3D();
 	const buildingMeshes = {};
 
-	'abc'.split('').forEach(letter => {
+	'abcdefg'.split('').forEach(letter => {
 		const building = modelLoader.getGLTF('buildings', letter);
 		const geo = building.scene.children[0].geometry;
-		buildingMeshes[letter] = {};
-		buildingMeshes[letter].mesh = new THREE.InstancedMesh(geo, buildingMaterial, 20);
-		buildingMeshes[letter].mesh.instanceMatrix.setUsage( THREE.DynamicDrawUsage );
-		buildingMeshes[letter].count = 0;
+		const mesh = new THREE.InstancedMesh(geo, buildingMaterial, 36);
+		mesh.instanceMatrix.setUsage( THREE.DynamicDrawUsage );
+		mesh.castShadow = true;
+		buildingMeshes[letter] = {
+			mesh: mesh,
+			count: 0,
+		};
 		scene.add(buildingMeshes[letter].mesh);
 	});
 
-	// buildingAMesh.instanceMatrix.needsUpdate = true;
+	for (let i = 0; i < 2; i++) {
+		let z = -128 + -32 * i;
+		for (let j = 0; j < 4; j++) {
+			const r = [Math.PI, 0, -Math.PI/2, Math.PI/2][j];
+			z *= j % 1 == 0 ? -1 : 1;
+			for (let x = 0; x < 256; x += 12) {
+				let _x = j > 1 ? z + 128 : x;
+				let _z = j > 1 ? x - 128: z;
+				dummy.position.set(_x - 128, 3, _z);
+				dummy.rotation.y = r;
+				dummy.updateMatrix();
+				const letter = choice(...Object.keys(buildingMeshes));
+				buildingMeshes[letter].mesh.setMatrixAt(buildingMeshes[letter].count++, dummy.matrix);
+			}
+		}
+	}
 
-	for (let x = 0; x < 256; x += 12) {
-		dummy.position.set(x - 128, 7, -128);
-		// dummy.rotation.y = Math.PI / 2;
-		dummy.updateMatrix();
-		const letter = choice(...Object.keys(buildingMeshes));
-		buildingMeshes[letter].mesh.setMatrixAt(buildingMeshes[letter].count++, dummy.matrix);
-	}	
+	for (const m in buildingMeshes) {
+		// console.log('buildings', m, buildingMeshes[m].count);
+		buildingMeshes[m].mesh.count = buildingMeshes[m].count;
+	}
+
+// trees
+	const texture = new THREE.TextureLoader().load( './static/textures/tree.png' );
+	texture.wrapS = THREE.RepeatWrapping;
+	texture.wrapT = THREE.RepeatWrapping;
+	texture.repeat.set( 8, 8 );
+	const treeMaterial = getToonMaterial({
+		color: 0x6db390,
+		map: texture,
+		// emissiveColor: 0x1e00ff,
+	});
+
+	const treeMeshes = {};
+	'abcdef'.split('').forEach(letter => {
+		const tree = modelLoader.getGLTF('trees', letter);
+		const geo = tree.scene.children[0].geometry;
+		const mesh = new THREE.InstancedMesh(geo, treeMaterial, 64);
+		mesh.instanceMatrix.setUsage( THREE.DynamicDrawUsage );
+		mesh.castShadow = true;
+		treeMeshes[letter] = {
+			mesh: mesh,
+			count: 0,
+		};
+		scene.add(treeMeshes[letter].mesh);
+	});
+
+	for (let x = -128; x < 128; x += 8) {
+		for (let z = -128; z < 128; z += 8) {
+			let d = distance(0, 0, x, z);
+			let pct = map(d, 0, 181, 0, 0.5);
+			if (chance(pct)) {
+				dummy.position.set(x, 3, z);
+				dummy.rotation.y = random(Math.PI * 2);
+				dummy.updateMatrix();
+				const letter = choice(...Object.keys(treeMeshes));
+				treeMeshes[letter].mesh.setMatrixAt(treeMeshes[letter].count++, dummy.matrix);
+			}
+		}
+	}
+
+	for (const m in treeMeshes) {
+		console.log('trees', m, treeMeshes[m].count);
+		treeMeshes[m].mesh.count = treeMeshes[m].count;
+	}
+
 
 	return scene;
 }

@@ -53,6 +53,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		mesh.traverse(c => {
 			if (c.constructor.name == 'SkinnedMesh') {
 				c.castShadow = true;
+				c.receiveShadow = true;
 				if (c.material.name == 'EyeMaterial') {
 					c.material = eyeMaterial;
 				} else {
