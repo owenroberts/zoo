@@ -27,7 +27,7 @@ export default function Ground() {
 				continue;
 			}
 
-			const height = Math.sin((i / sizeX) * Math.PI * xRandom) * 
+			const height = 	Math.sin((i / sizeX) * Math.PI * xRandom) * 
 							Math.sin((j / sizeZ) * Math.PI * yRandom) * 
 							groundHeight + groundHeight;
 			xRandom += random(-0.01, 0.01);

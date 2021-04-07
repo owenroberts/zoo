@@ -11,16 +11,18 @@ export default function ModelLoader(callback) {
 	const modelPath = {
 		letters: './static/models/letters-2-low/',
 		characters: './static/models/characters/',
+		buildings: './static/models/buildings/',
 	};
-	const models = { letters: {}, characters: {} };
+	const models = { letters: {}, characters: {}, buildings: {} };
 	const manager = new THREE.LoadingManager();
 	const loader = new GLTFLoader(manager);
 
 	manager.onLoad = () => {
-		console.log('models loaded');
+		console.timeEnd('models loaded');
 		callback();
 	};
 
+	console.time('models loaded');
 	'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => {
 		loader.load(`${modelPath.letters}${letter}.glb`, gltf => {
 			models.letters[letter] = gltf;
@@ -32,6 +34,13 @@ export default function ModelLoader(callback) {
 			models.characters[letter] = gltf;
 		});
 	});
+
+	'abc'.split('').forEach(letter => {
+		loader.load(`${modelPath.buildings}building-${letter}.glb`, gltf => {
+			models.buildings[letter] = gltf;
+		})
+	})
+
 
 	this.getModel = function(type, key) {
 		return models[type][key].scene.clone();

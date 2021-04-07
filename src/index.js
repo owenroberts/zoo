@@ -21,7 +21,6 @@ let physics;
 let playerInput, playerController;
 let AIs = [], numAIs = 10;
 
-
 const modelLoader = new ModelLoader(() => {
 	init();
 	animate();
@@ -45,7 +44,7 @@ function init() {
 	renderer.toneMappingExposure = 0.5;
 	document.body.appendChild(renderer.domElement);
 
-	scene = setupScene();
+	scene = setupScene(modelLoader);
 	renderer.setClearColor(scene.fog.color);
 
 	stats = new Stats();
@@ -58,7 +57,7 @@ function init() {
 	// thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
 	controls = new OrbitControls(camera, renderer.domElement);
 	controls.enablePan = false;
-	controls.maxDistance = 50;
+	// controls.maxDistance = 50;
 	// controls.enableZoom = false;
 
 	let x = 0, z = 0;
@@ -73,7 +72,6 @@ function init() {
 			z += 5;
 			x = 0;	
 		}
-		
 	}
 }
 
@@ -99,7 +97,7 @@ function animate() {
 		
 		physics.update(timeElapsed);
 		controls.update();
-		controls.goTo(playerController.getPosition()); 
+		// controls.goTo(playerController.getPosition()); 
 
 		stats.update();
 		previousRAF = t;

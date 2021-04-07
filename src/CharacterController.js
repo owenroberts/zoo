@@ -17,7 +17,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 	const upAxis = new CANNON.Vec3(0, 1, 0);
 
 	const decceleration = new THREE.Vector3(-0.0005, -0.0001, -10.0);
-	const acceleration = new THREE.Vector3(0.25, 0.25, 1.0);
+	const acceleration = new THREE.Vector3(0.5, 0.5, 1.0);
 	const velocity = new THREE.Vector3(0, 0, 0);
 	let jump = {
 		count: 0,
