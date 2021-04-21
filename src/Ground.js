@@ -52,15 +52,13 @@ export default function Ground() {
 
 	const groundMat = new THREE.MeshLambertMaterial({ 
 		color: 0xffffff,
-		map: new THREE.TextureLoader().load('./static/textures/tree.png'),
-	 });
+	});
 	groundMat.color.setHSL( 0.095, 1, 0.75 );
 
 	this.mesh = bodyToMesh(this.body, groundMat);
-	console.log(this.mesh);
 	this.mesh.traverse(child => {
 		if (child.constructor.name == 'Mesh') {
-			child.castShadow = true;
+			// child.castShadow = true;
 			child.receiveShadow = true;
 		}
 	});
