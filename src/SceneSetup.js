@@ -13,7 +13,7 @@ export default function setupScene(modelLoader) {
 	
 	scene.background = new THREE.Color().setHSL( 0.6, 0, 1 );
 	scene.background = new THREE.Color( 0x000000 );
-	scene.fog = new THREE.Fog( scene.background, 1,300 );
+	scene.fog = new THREE.Fog( scene.background, 1, 1000 );
 	scene.fog.color.setHSL( 0.095, 0.4, 0.3 );
 
 	const sky = new Sky();
@@ -92,12 +92,14 @@ export default function setupScene(modelLoader) {
 		scene.add(buildingMeshes[letter].mesh);
 	});
 
+	// ground 256 x 256
 	for (let i = 0; i < 2; i++) {
-		let z = -128 + -32 * i;
+		let z = -120 + -32 * i;
+		// let z = -120;
 		for (let j = 0; j < 4; j++) {
 			const r = [Math.PI, 0, -Math.PI/2, Math.PI/2][j];
 			z *= j % 1 == 0 ? -1 : 1;
-			for (let x = 0; x < 256; x += 12) {
+			for (let x = 24; x < (256 - 24); x += 12) {
 				let _x = j > 1 ? z + 128 : x;
 				let _z = j > 1 ? x - 128: z;
 				dummy.position.set(_x - 128, 3, _z);
@@ -125,38 +127,56 @@ export default function setupScene(modelLoader) {
 		// emissiveColor: 0x1e00ff,
 	});
 
-	const treeMeshes = {};
-	'abcdef'.split('').forEach(letter => {
-		const tree = modelLoader.getGLTF('trees', letter);
-		const geo = tree.scene.children[0].geometry;
-		const mesh = new THREE.InstancedMesh(geo, treeMaterial, 64);
-		mesh.instanceMatrix.setUsage( THREE.DynamicDrawUsage );
-		mesh.castShadow = true;
-		treeMeshes[letter] = {
-			mesh: mesh,
-			count: 0,
-		};
-		scene.add(treeMeshes[letter].mesh);
+	const trunkMaterial = getToonMaterial({
+		color: 0xe0d3da,
+		map: texture,
+		// emissiveColor: 0x1e00ff,
 	});
+	// const treeMaterial = new THREE.MeshFaceMaterial([leavesMaterial, trunkMaterial]);
 
-	for (let x = -128; x < 128; x += 8) {
-		for (let z = -128; z < 128; z += 8) {
+
+	// const treeMeshes = [];
+	// 'abcdef'.split('').forEach(letter => {
+		// const tree = modelLoader.getGLTF('trees', letter);
+		// const geo = tree.scene.children[0].geometry;
+		// const mesh = new THREE.InstancedMesh(geo, treeMaterial, 64);
+		// mesh.instanceMatrix.setUsage( THREE.DynamicDrawUsage );
+		// mesh.castShadow = true;
+		// treeMeshes[letter] = {
+		// 	mesh: mesh,
+		// 	// count: 0,
+		// };
+
+		// scene.add(treeMeshes[letter].mesh);
+	// });
+
+	let b = 112; // bound
+	let long = distance(0, 0, b, b);
+	for (let x = -b; x < b; x += 8) {
+		for (let z = -b; z < b; z += 8) {
 			let d = distance(0, 0, x, z);
-			let pct = map(d, 0, 181, 0, 0.5);
+			let pct = map(d, 0, long, 0, 0.5);
 			if (chance(pct)) {
-				dummy.position.set(x, 3, z);
-				dummy.rotation.y = random(Math.PI * 2);
-				dummy.updateMatrix();
-				const letter = choice(...Object.keys(treeMeshes));
-				treeMeshes[letter].mesh.setMatrixAt(treeMeshes[letter].count++, dummy.matrix);
+				const letter = choice(...'abcdef'.split(''));
+				const mesh = modelLoader.getModel('trees', letter);
+				mesh.children[0].children[0].material = treeMaterial;
+				mesh.children[0].children[1].material = trunkMaterial;
+				// mesh.children[0].material = treeMaterial;
+				mesh.castSahdow = true;
+				mesh.position.set(x, 3, z);
+				mesh.rotation.y = random(Math.PI * 2);
+				// dummy.updateMatrix();
+				scene.add(mesh);
+				
+				// treeMeshes[letter].mesh.setMatrixAt(treeMeshes[letter].count++, dummy.matrix);
 			}
 		}
 	}
 
-	for (const m in treeMeshes) {
-		console.log('trees', m, treeMeshes[m].count);
-		treeMeshes[m].mesh.count = treeMeshes[m].count;
-	}
+	// for (const m in treeMeshes) {
+	// 	// console.log('trees', m, treeMeshes[m].count);
+	// 	treeMeshes[m].mesh.count = treeMeshes[m].count;
+	// }
 
 
 	return scene;

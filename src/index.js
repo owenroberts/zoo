@@ -16,7 +16,7 @@ import HexMap from './HexMap';
 let camera, scene, renderer, stats, dpr, w, h;
 let controls;
 let hexMap, sideLength = 16;
-// const cameraOffset = new THREE.Vector3(-20, 80, -20);
+// const cameraOffset = new THREE.Vector3(-40, 120, -40); // distant view for testing
 const cameraOffset = new THREE.Vector3(-6, 6, -8);
 let thirdPersonCamera;
 let physics;
@@ -28,6 +28,31 @@ const modelLoader = new ModelLoader(() => {
 	animate();
 });
 
+const lines = new Game({
+	dps: 24,
+	width: window.innerWidth,
+	height: window.innerHeight,
+	scenes: ['dialog'],
+	lineWidth: 2,
+});
+
+lines.load({
+	text: 'static/drawings/data.json'
+});
+
+let dialog;
+
+window.start = function() {
+	console.log(lines);
+	let indexString = "abcdefghijklmnopqrstuvwxyz.?'";
+	dialog = new Text(200, window.innerHeight - 200, 'fucking christ', 16, lines.anims.text.lettering, indexString);
+}
+
+// combine with animate?
+window.draw = function() {
+	dialog.display(true, true);
+}
+
 function init() {
 	
 	w = window.innerWidth;
@@ -36,6 +61,7 @@ function init() {
 	camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 	camera.position.copy(cameraOffset.clone());
 
+// renderer
 	dpr = window.devicePixelRatio;
 	renderer = new THREE.WebGLRenderer({ antialias: true });
 	renderer.setSize(dpr * w, dpr * (w * h / w));
@@ -48,13 +74,13 @@ function init() {
 
 	scene = setupScene(modelLoader);
 	renderer.setClearColor(scene.fog.color);
-
+// stats
 	stats = new Stats();
 	document.body.appendChild(stats.dom);
 	window.addEventListener('resize', onWindowResize);
 
+// setup
 	hexMap = new HexMap(3, true);
-
 	physics = new Physics(scene, hexMap, sideLength, modelLoader);
 	playerInput = new CharacterControllerInput();
 	playerController = new CharacterController(scene, physics, modelLoader, playerInput);
@@ -66,9 +92,11 @@ function init() {
 	// controls.maxDistance = 50;
 	// controls.enableZoom = false;
 
+// lines
 
+
+// ais
 	console.log(hexMap);
-
 	let x = 0, z = 0;
 	for (let i = 0; i < numAIs; i++) {
 		const input = new CharacterAIInput(i == 0);
@@ -81,7 +109,6 @@ function init() {
 			x = 0;	
 		}
 	}
-
 }
 
 let previousRAF = null;

@@ -39,7 +39,7 @@ export default function Ground() {
 
 	const groundMaterial = new CANNON.Material('ground');
 	const heightfieldShape = new CANNON.Heightfield(matrix, {
-		elementSize: 300 / sizeX,
+		elementSize: 256 / sizeX,
 	});
 	this.body = new CANNON.Body({ mass: 0 });
 	this.body.addShape(heightfieldShape);

@@ -12,7 +12,7 @@ export default function ModelLoader(callback) {
 		letters: './static/models/letters-2-low/',
 		characters: './static/models/characters/',
 		buildings: './static/models/buildings/',
-		trees: './static/models/trees/',
+		trees: './static/models/trees-2/',
 	};
 	const models = { letters: {}, characters: {}, buildings: {}, trees: {} };
 	const manager = new THREE.LoadingManager();
@@ -46,6 +46,7 @@ export default function ModelLoader(callback) {
 	'abcdef'.split('').forEach(letter => {
 		loader.load(`${modelPath.trees}tree-${letter}.glb`, gltf => {
 			models.trees[letter] = gltf;
+			if (letter == 'a') console.log(gltf);
 		});
 	});
 
