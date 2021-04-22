@@ -6,57 +6,36 @@ import { CharacterControllerInput } from './CharacterControllerInput';
 import { ThirdPersonCamera } from './ThirdPersonCamera';
 import { OrbitControls } from './OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
-import CharacterAIInput from './CharacterAIInput';
-import CharacterAI from './CharacterAI';
+
 import { choice, random, chance } from './Cool';
 import setupScene from './SceneSetup';
 import HexMap from './HexMap';
+import Dialog from './Dialog';
+import AI from './AI';
 
 // three.js variables
-let camera, scene, renderer, stats, dpr, w, h;
+let camera, scene, renderer, stats, dpr;
+let w = window.innerWidth, h = window.innerHeight;
 let controls;
 let hexMap, sideLength = 16;
-// const cameraOffset = new THREE.Vector3(-40, 120, -40); // distant view for testing
+// const cameraOffset = new THREE.Vector3(-120, 60, -120); // distant view for testing
 const cameraOffset = new THREE.Vector3(-6, 6, -8);
 let thirdPersonCamera;
 let physics;
 let playerInput, playerController;
-let AIs = [], numAIs = 10;
+
 
 const modelLoader = new ModelLoader(() => {
 	init();
 	animate();
 });
 
-const lines = new Game({
-	dps: 24,
-	width: window.innerWidth,
-	height: window.innerHeight,
-	scenes: ['dialog'],
-	lineWidth: 2,
-});
-
-lines.load({
-	text: 'static/drawings/data.json'
-});
-
-let dialog;
-
-window.start = function() {
-	console.log(lines);
-	let indexString = "abcdefghijklmnopqrstuvwxyz.?'";
-	dialog = new Text(200, window.innerHeight - 200, 'fucking christ', 16, lines.anims.text.lettering, indexString);
-}
-
-// combine with animate?
-window.draw = function() {
-	dialog.display(true, true);
-}
+let ais;
+let dialog = new Dialog(w, h);
+console.log(dialog);
 
 function init() {
 	
-	w = window.innerWidth;
-	h = window.innerHeight;
 	const [fov, aspect, near, far] = [60, w / h, 1.0, 2000.0];
 	camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 	camera.position.copy(cameraOffset.clone());
@@ -83,7 +62,7 @@ function init() {
 	hexMap = new HexMap(3, true);
 	physics = new Physics(scene, hexMap, sideLength, modelLoader);
 	playerInput = new CharacterControllerInput();
-	playerController = new CharacterController(scene, physics, modelLoader, playerInput);
+	playerController = new CharacterController(scene, physics, modelLoader, playerInput, [3, 8, 3]);
 	// thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
 	camera.lookAt(cameraOffset.clone());
 	controls = new OrbitControls(camera, renderer.domElement);
@@ -92,23 +71,8 @@ function init() {
 	// controls.maxDistance = 50;
 	// controls.enableZoom = false;
 
-// lines
-
-
-// ais
-	console.log(hexMap);
-	let x = 0, z = 0;
-	for (let i = 0; i < numAIs; i++) {
-		const input = new CharacterAIInput(i == 0);
-		const position = [x, 8, z];
-		const controller = new CharacterController(scene, physics, modelLoader, input, position);
-		AIs.push(new CharacterAI(input, controller, i == 0));
-		x += 10;
-		if (x > 30) {
-			z += 5;
-			x = 0;	
-		}
-	}
+	ais = new AI(10, hexMap, sideLength, scene, physics, modelLoader);
+	
 }
 
 let previousRAF = null;
@@ -119,18 +83,11 @@ function animate() {
 		renderer.render(scene, camera);
 		const timeElapsed = t - previousRAF;
 		if (playerController) playerController.update(timeElapsed);
-		
-		// get ai data before update
-		const aiProps = [];
-		for (let i = 0; i < AIs.length; i++) {
-			aiProps.push(AIs[i].controller.getProps());
+		if (playerController.isTalking) {
+			if (!dialog.isActive()) playerController.isTalking = false; 
 		}
-		aiProps.push(playerController.getProps());
+		ais.update(timeElapsed, playerController.getProps());
 
-		for (let i = 0; i < AIs.length; i++) {
-			AIs[i].update(Math.min(1000 / 10, timeElapsed), aiProps);
-		}
-		
 		physics.update(timeElapsed);
 		controls.update();
 		controls.goTo(playerController.getPosition()); 
@@ -147,3 +104,21 @@ function onWindowResize() {
 	camera.updateProjectionMatrix()
 	renderer.setSize(dpr * w, dpr * (w * h / w))
 }
+
+// message events
+window.addEventListener("message", (event) => {
+	if (event.data.aiMessage) {
+		dialog.setMessage(event.data.aiMessage);
+		playerController.isTalking = true;
+	}
+}, false);
+
+// key commands
+document.addEventListener('keydown', ev => {
+	if (ev.key == 'r') {
+		// reset camera zoom
+		controls.reset(); // adjust to also reset position ... 
+		console.log(controls);
+		
+	}
+});

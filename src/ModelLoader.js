@@ -46,7 +46,6 @@ export default function ModelLoader(callback) {
 	'abcdef'.split('').forEach(letter => {
 		loader.load(`${modelPath.trees}tree-${letter}.glb`, gltf => {
 			models.trees[letter] = gltf;
-			if (letter == 'a') console.log(gltf);
 		});
 	});
 

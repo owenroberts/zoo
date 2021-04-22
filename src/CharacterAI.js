@@ -4,14 +4,11 @@
 
 import * as THREE from 'three';
 
-export default function CharacterAI(input, controller, debug) {
-	const self = this;
+export default function CharacterAI(input, controller, dialog, debug) {
 
 	this.isAI = true;
 	this.controller = controller;
-	if (debug) {
-		controller.setDebug();
-	}
+	if (debug) controller.setDebug();
 
 	// params for different types/species ?
 	const flockRadius = 10;
@@ -19,6 +16,24 @@ export default function CharacterAI(input, controller, debug) {
 	const alignLevel = 1; // smaller is more aligned
 	const centerLevel = 20; // smaller is more centered
 	const seperationLevel = 10; // smaller more seperate
+
+	// player talk vars
+	const playerTalkDistance = 5;
+	let talkedToPlayer = false;
+
+	function checkPlayer(player) {
+		let { position } = controller.getProps();
+		let distance = position.distanceTo(player.position);
+		return distance < playerTalkDistance;
+	}
+
+	function calculateAlignment(other) {
+		let { position, velocity } = controller.getProps();
+		let alignment = new THREE.Vector3(); // alignment
+		alignment.add(other.velocity);
+		alignment.sub(velocity);
+		return alignment;
+	}
 
 	function steer(others) {
 		let alignment = new THREE.Vector3(); // alignment
@@ -81,11 +96,37 @@ export default function CharacterAI(input, controller, debug) {
 	};
 
 	this.update = function(timeElapsed, others) {
-		if (input && controller) {
-			this.flock(others);
-			input.update(timeElapsed);
-			controller.update(timeElapsed);
+		if (!input || !controller) return;
+
+		if (!talkedToPlayer && !others[0].isTalking && !input.jump) {
+			if (checkPlayer(others[0])) {
+				talkedToPlayer = true;
+				input.killActions();
+				
+				// turn to player ... 
+				let alignment = calculateAlignment(others[0]);
+				// console.log('align', alignment.z > threshold, alignment.z < -threshold);
+				// console.log(Math.abs(alignment.z) );
+				let alignTime = 0;
+				if (Math.abs(alignment.z) > threshold) {
+					alignTime = Math.abs(alignment.z) * 2.5;
+					input.addAction(alignment.z > 0 ? 'left' : 'right', alignTime);
+				}
+				input.addAction('talk', 30, alignTime + 5); // delay
+				window.postMessage({ aiMessage: dialog });
+			}
 		}
+
+		if (talkedToPlayer) {
+			// console.log(input);
+		}
+		
+		if (!input.hasAction('talk')) {
+			this.flock(others);
+		}
+
+		input.update(timeElapsed);
+		controller.update(timeElapsed);
 	};
 
 }

@@ -1,5 +1,5 @@
 import { FiniteStateMachine } from './FiniteStateMachine';
-import { IdleState, JumpStart, JumpMid, JumpLand, WalkState, BackState, RunState } from './CharacterAnimationStates';
+import { IdleState, JumpStart, JumpMid, JumpLand, WalkState, BackState, RunState, TalkState, SniffState } from './CharacterAnimationStates';
 
 class CharacterFSM extends FiniteStateMachine {
 	constructor(animations) {
@@ -15,6 +15,8 @@ class CharacterFSM extends FiniteStateMachine {
 		this.add('JumpMid', JumpMid);
 		this.add('JumpLand', JumpLand);
 		// this.add('dance', DanceState);
+		this.add('Talk', TalkState);
+		this.add('Sniff', SniffState);
 	}
 
 	getAction(state) {

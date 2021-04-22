@@ -21,6 +21,10 @@ class Axial {
   	}
 
 	calculatePosition(w, h) {
+		if (h === undefined) { // just given side length
+			w = w * 2;
+			h = Math.sqrt(3) / 2 * w;
+		}
 		let c = this.toCube();
 		return { 
       		x: Math.round(c.x * w * 3/4), 

@@ -17,12 +17,17 @@ export default function CharacterAIInput(debug) {
 		right: false,
 		jump: false,
 		run: false,
+		talk: false,
+		sniff: false,
 	};
 
 	for (const key in keys) {
 		Object.defineProperty(this, key, {
 			get: function() {
-				return keys[key]
+				return keys[key];
+			},
+			set: function(value) {
+				keys[key] = value;
 			}
 		});
 	};
@@ -45,44 +50,52 @@ export default function CharacterAIInput(debug) {
 	}
 
 	this.update = function(timeElapsed) {
-		// if (actions.every(a => a.finished) && isMoving) {
-		// 	// addActions();
-		// }
-
 		for (const key in actions) {
-			actions[key].count += timeElapsed;
-			if (actions[key].count > actions[key].interval) {
+			let action = actions[key];
+			action.count += timeElapsed;
+			if (action.count > action.delay && 
+				action.count < action.delay + action.interval &&
+				!keys[key]) {
+				keys[key] = true;
+			}
+			if (action.count > action.interval) {
 				keys[key] = false;
 				delete actions[key];
 			}
 		}
 	};
 
-	this.setKey = function(key, value) {
-		keys[key] = value;
+
+	// if has action with delay
+	this.hasAction = function(key) {
+		return actions[key];
 	};
 
-	this.addAction = function(key, duration) {
+	this.addAction = function(key, duration, delay) {
 		if (isMoving) {
-			keys[key] = true;
+			// keys[key] = true;
 			actions[key] = {
 				count: 0,
-				interval: duration * 100
+				interval: duration * 100,
+				delay: delay || 0,
 			};
+		}
+	};
+
+	this.killActions = function() {
+		actions = {};
+		for (const key in keys) {
+			keys[key] = false;
 		}
 	};
 
 	// wait til char hits ground to move
 	this.onHitGround = function() {
-		if (!isMoving) {
-			isMoving = true;
-			// keys.forward = true;
-		}
+		if (!isMoving) isMoving = true;
 	};
 
 	this.onHitWall = function() {
 		if (chance(0.5)) this.addAction('jump', 1);
 	};
-
 
 }

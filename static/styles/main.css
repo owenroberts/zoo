@@ -14,4 +14,5 @@ body {
 #lines {
 	z-index: 1;
 	position: fixed;
+	pointer-events: none;
 }

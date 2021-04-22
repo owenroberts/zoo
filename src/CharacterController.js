@@ -1,13 +1,18 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { CharacterFSM, IdleState, DanceState, WalkState, RunState } from './CharacterStates';
+import { CharacterFSM } from './CharacterStates';
 import { CharacterControllerInput } from './CharacterControllerInput';
 import getToonMaterial from './ToonMaterial';
 import { random } from './Cool';
 
 function CharacterController(scene, physics, modelLoader, input, position) {
 	
+	let debug = true;
+	if (!input.isAI) {
+		this.isPlayer = true;
+		this.isTalking = false;
+	}
+
 	let mesh, mixer, stateMachine;
 	let body, debugMesh, axesHelper;
 	let container;
@@ -81,9 +86,11 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		const radius = (box.max.y - box.min.y) / 2;
 		mesh.position.y -= radius;
 
-		const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x22ffaa, wireframe: true });
-		debugMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), debugMaterial);
-		scene.add(debugMesh);
+		if (debug) {
+			const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x22ffaa, wireframe: true });
+			debugMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), debugMaterial);
+			scene.add(debugMesh);
+		}
 
 		// mesh.rotation.y = -Math.PI * 0.66;
 		mesh.rotation.y = -Math.PI * 0.5;
@@ -97,6 +104,8 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		// body.fixedRotation = true;
 		body.updateMassProperties();
 		body.addShape(sphereShape);
+		body.isAI = input.isAI;
+		body.isPlayer = !input.isAI;
 
 		if (position) body.position.set(...position);
 		else body.position.set(0, 10, 0);
@@ -114,14 +123,17 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 
 		}
 
-		axesHelper = new THREE.AxesHelper( 1 );
-		scene.add( axesHelper );
+		if (debug) {
+			axesHelper = new THREE.AxesHelper( 1 );
+			scene.add( axesHelper );
+		}
 		
 		body.addEventListener('collide', onCollision);
 	}
 
 	function onCollision(ev) {
 		let contact = ev.contact;
+		
 		if (contact.bi.id == body.id) {
 			contact.ni.negate(contactNormal);
 		} else {
@@ -132,13 +144,19 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 			if (input.isAI) input.onHitGround();
 		} else {
 			if (input.isAI) input.onHitWall();
+			// if (this.isPlayer && contact.bi.isAI) {
+			// 	// hit ai
+			// 	console.log('player hit ai', contactNormal);
+
+			// }
+			// if (input.isAI && contact.bi.isPlayer) {
+			// 	console.log('ai hit player', contactNormal);
+			// }
 		}
 	}
 
-	this.update = function(timeElapsed) {
-		if (!mesh || !body) return;
-		const timeInSeconds = timeElapsed * 0.001;
-
+	function applyVelocity(timeElapsed, timeInSeconds) {
+		
 		const v = velocity;
 		const frameDecceleration = new THREE.Vector3(
 			v.x * decceleration.x,
@@ -156,7 +174,6 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		const _A = new THREE.Vector3();
 		const _R = controlObject.quaternion.clone();
 
-		// almost there!
 
 		if (input.jump && !jump.started && jump.count < 2) {
 			if (jump.count == 0) {
@@ -206,7 +223,6 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 
 		forward.multiplyScalar(v.z * timeInSeconds);
 		sideways.multiplyScalar(v.x * timeInSeconds);
-		// console.log(forward);
 
 		body.velocity.x += forward.x;
 		body.velocity.y += forward.y;
@@ -215,17 +231,17 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		body.velocity.x += sideways.x;
 		body.velocity.y += sideways.y;
 		body.velocity.z += sideways.z;
+	}
 
-		axesHelper.position.copy(body.position);
-		axesHelper.quaternion.copy(controlObject.quaternion);
+	this.update = function(timeElapsed) {
+		if (!mesh || !body) return;
+		const timeInSeconds = timeElapsed * 0.001;
+		
+		// if (input.talk) console.log(input.talk, input.forward, input.left, input.right);
+		applyVelocity(timeElapsed, timeInSeconds);
+		container.position.copy(body.position); // update mesh position
 
-		container.position.copy(body.position);
-
-		debugMesh.position.copy(body.position);
-		debugMesh.quaternion.copy(body.quaternion);
-
-		// check if player is about to hit ground
-		let endOfJump = false; 
+		let endOfJump = false; // check if player is about to hit ground
 		if (jump.count > 0 && body.velocity.y < 5) {
 			groundRaycaster.set(container.position.clone(), groundRay.clone());
 			const intersects = groundRaycaster.intersectObjects(physics.getCastList());
@@ -234,10 +250,15 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 			}
 		}
 
-		// console.log(body.velocity.y);
-		// if (stateMachine.debug) console.log(input.forward);
 		if (stateMachine) stateMachine.update(input, jump, endOfJump);
 		if (mixer) mixer.update(timeInSeconds);
+
+		if (debug) {
+			axesHelper.position.copy(body.position);
+			axesHelper.quaternion.copy(container.quaternion);
+			debugMesh.position.copy(body.position);
+			debugMesh.quaternion.copy(body.quaternion);
+		}
 	};
 
 	// get pos and rot for camera
@@ -260,12 +281,14 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 			position: container.position.clone(),
 			velocity: body.velocity,
 			quaternion: container.quaternion.clone(),
+			isTalking: this.isTalking,
 		};
 	};
 
-	this.setDebug = function() {
+	this.setDebug = function(isDebug) {
 		debugMesh.material = new THREE.MeshBasicMaterial({ color: 0xaaddff, wireframe: true });
-		stateMachine.debug = true;
+		stateMachine.debug = isDebug;
+		debug = isDebug;
 	};
 
 }

@@ -1,3 +1,7 @@
+/*
+	states for each character animation in FSM
+*/
+
 import { AnyState } from './AnyState'
 import { SinglePlayState } from './SinglePlayState';
 import { choice } from './Cool';
@@ -6,6 +10,8 @@ class IdleState extends AnyState {
 	update(input, jump) {
 		if (jump.started) {
 			this.parentStateMachine.set('JumpStart');
+		} else if (input.talk) {
+			this.parentStateMachine.set('Talk');
 		} else if (input.backward) {
 			this.parentStateMachine.set('Back');
 		} else if (input.forward || input.left || input.right) {
@@ -32,11 +38,6 @@ class JumpMid extends AnyState {
 	}
 
 	update(input, jump, endOfJump) {
-		// console.log('endOfJump', endOfJump)
-		// if (jump.started) {
-		// 	this.parentStateMachine.set('JumpStart');
-		// 	return;
-		// }
 		if (endOfJump || jump.count == 0) {
 			this.parentStateMachine.set('JumpLand');
 		}
@@ -67,12 +68,18 @@ class WalkState extends AnyState {
 		if (jump.started) {
 			this.parentStateMachine.set('JumpStart');
 			return;
-		} else if (input.forward || input.left || input.right) {
-			if (input.run) {
-				this.parentStateMachine.set('Run');
-			}
+		}
+
+		if (input.talk) {
+			this.parentStateMachine.set('Talk');
 			return;
 		}
+
+		if (input.forward || input.left || input.right) {
+			if (input.run) this.parentStateMachine.set('Run');
+			return;
+		}
+
 		this.parentStateMachine.set(choice('Idle1', 'Idle2'));
 	}
 }
@@ -86,9 +93,17 @@ class BackState extends AnyState {
 		if (jump.started) {
 			this.parentStateMachine.set('JumpStart');
 			return;
-		} else if (input.backward || input.left || input.right) {
+		}
+
+		if (input.talk) {
+			this.parentStateMachine.set('Talk');
 			return;
 		}
+
+		if (input.backward || input.left || input.right) {
+			return;
+		}
+
 		this.parentStateMachine.set(choice('Idle1', 'Idle2'));
 	}
 }
@@ -102,14 +117,34 @@ class RunState extends AnyState {
 		if (jump.started) {
 			this.parentStateMachine.set('JumpStart');
 			return;
-		} else if (input.forward || input.left || input.right) {
-			if (!input.run) {
-				this.parentStateMachine.set('Walk');
-			}
+		}
+
+		if (input.talk) {
+			this.parentStateMachine.set('Talk');
 			return;
 		}
+
+		if (input.forward || input.left || input.right) {
+			if (!input.run) this.parentStateMachine.set('Walk');
+			return;
+		}
+
 		this.parentStateMachine.set(choice('Idle1', 'Idle2'));
 	}
 }
 
-export { IdleState, JumpStart, JumpMid, JumpLand, WalkState, BackState, RunState };
+class TalkState extends AnyState {
+	update(input) {
+		// only return to idle when done talking
+		if (!input.talk) {
+			this.parentStateMachine.set(choice('Idle1', 'Idle2'));
+		}
+	}
+}
+
+class SniffState extends AnyState {
+
+}
+
+
+export { IdleState, JumpStart, JumpMid, JumpLand, WalkState, BackState, RunState, TalkState, SniffState };

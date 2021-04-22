@@ -13,7 +13,8 @@ import Ground from './Ground';
 export default function Physics(scene, hexMap, sideLength, models) {
 
 	const castList = []; // so character knows whens its on the ground -- raycast
-	
+
+// world setup
 	const world = new CANNON.World();
 	world.defaultContactMaterial.contactEquationStiffness = 1e9;
 	world.defaultContactMaterial.contactEquationRelaxation = 4;
@@ -44,6 +45,7 @@ export default function Physics(scene, hexMap, sideLength, models) {
 
 	scene.add(new THREE.AxesHelper(3));
 
+// grund
 	const ground = new Ground();
 	world.addBody(ground.body);
 	scene.add(ground.mesh);
@@ -57,16 +59,18 @@ export default function Physics(scene, hexMap, sideLength, models) {
 		return new THREE.Vector3(v.x, v.y, v.z);
 	});
 
+// hex walls
 	const wallBodies = []; // dont need this if walls dont move
 	const walls = hexMap.getWalls(sideLength);
 	walls.forEach(params => {
 		const wall = new Wall(params, sideLength, models, groundVerts, false);
-		scene.add(wall.container);
-		world.addBody(wall.body);
+		// scene.add(wall.container);
+		// world.addBody(wall.body);
 		addToCastList(wall.container);
 		// scene.add(wall.bodyMesh); // debug
 	});
 
+// physis
 	function addToCastList(mesh) {
 		mesh.traverse(child => {
 			if (child.constructor.name == 'Mesh') {
