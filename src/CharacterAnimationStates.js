@@ -10,11 +10,25 @@ class IdleState extends AnyState {
 	update(input, jump) {
 		if (jump.started) {
 			this.parentStateMachine.set('JumpStart');
-		} else if (input.talk) {
+			return;
+		}
+
+		if (input.talk) {
 			this.parentStateMachine.set('Talk');
-		} else if (input.backward) {
+			return;
+		}
+
+		if (input.sniff) {
+			this.parentStateMachine.set('Sniff');
+			return;
+		}
+
+		if (input.backward) {
 			this.parentStateMachine.set('Back');
-		} else if (input.forward || input.left || input.right) {
+			return;
+		}
+
+		if (input.forward || input.left || input.right) {
 			this.parentStateMachine.set('Walk');
 		} 
 	}
@@ -75,6 +89,11 @@ class WalkState extends AnyState {
 			return;
 		}
 
+		if (input.sniff) {
+			this.parentStateMachine.set('Sniff');
+			return;
+		}
+
 		if (input.forward || input.left || input.right) {
 			if (input.run) this.parentStateMachine.set('Run');
 			return;
@@ -97,6 +116,11 @@ class BackState extends AnyState {
 
 		if (input.talk) {
 			this.parentStateMachine.set('Talk');
+			return;
+		}
+
+		if (input.sniff) {
+			this.parentStateMachine.set('Sniff');
 			return;
 		}
 
@@ -124,6 +148,11 @@ class RunState extends AnyState {
 			return;
 		}
 
+		if (input.sniff) {
+			this.parentStateMachine.set('Sniff');
+			return;
+		}
+
 		if (input.forward || input.left || input.right) {
 			if (!input.run) this.parentStateMachine.set('Walk');
 			return;
@@ -143,7 +172,12 @@ class TalkState extends AnyState {
 }
 
 class SniffState extends AnyState {
-
+	update(input) {
+		// only return to idle when done talking
+		if (!input.sniff) {
+			this.parentStateMachine.set(choice('Idle1', 'Idle2'));
+		}
+	}
 }
 
 

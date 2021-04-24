@@ -12,6 +12,7 @@ import setupScene from './SceneSetup';
 import HexMap from './HexMap';
 import Dialog from './Dialog';
 import AI from './AI';
+import VoiceSynth from './AIVoiceSynth';
 
 // three.js variables
 let camera, scene, renderer, stats, dpr;
@@ -32,6 +33,7 @@ const modelLoader = new ModelLoader(() => {
 
 let ais;
 let dialog = new Dialog(w, h);
+let voiceSynth = new VoiceSynth();
 console.log(dialog);
 
 function init() {
@@ -109,7 +111,18 @@ function onWindowResize() {
 window.addEventListener("message", (event) => {
 	if (event.data.aiMessage) {
 		dialog.setMessage(event.data.aiMessage);
+		voiceSynth.speak(event.data.aiMessage);
 		playerController.isTalking = true;
+	}
+	// console.log(event.data.);
+	if (event.data.testAxes) {
+		// console.log('test')
+		const { position, quaternion } = event.data.testAxes;
+		const axes = new THREE.AxesHelper( 3 );
+		axes.position.copy(position);
+		axes.quaternion.copy(new THREE.Quaternion().fromArray(quaternion));
+		// console.log(axes);
+		scene.add(axes);
 	}
 }, false);
 

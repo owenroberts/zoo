@@ -27,12 +27,40 @@ export default function CharacterAI(input, controller, dialog, debug) {
 		return distance < playerTalkDistance;
 	}
 
-	function calculateAlignment(other) {
-		let { position, velocity } = controller.getProps();
-		let alignment = new THREE.Vector3(); // alignment
-		alignment.add(other.velocity);
-		alignment.sub(velocity);
-		return alignment;
+	function calculateAlignment(other) { // other is player here
+		let { position, quaternion } = controller.getProps();
+
+		const start = new THREE.Object3D();
+		start.position.copy(position);
+		start.quaternion.copy(quaternion);
+
+		const end = start.clone();
+		end.lookAt(other.position);
+
+		// direction * angle 
+		return Math.sign(start.rotation.y - end.rotation.y) * start.quaternion.angleTo(end.quaternion);
+	}
+
+	function sniffCheck(others) {
+		// performance refactor
+		const { id, position, quaternion, radius } = controller.getProps();
+		const facePosition = new THREE.Object3D();
+		facePosition.applyQuaternion(quaternion);
+		facePosition.position.copy(position);
+		facePosition.translateZ(radius + 0.5);
+
+		for (let i = 0; i < others.length; i++) {
+			if (others[i].id != id) {
+				const buttPosition = new THREE.Object3D();
+				buttPosition.applyQuaternion(others[i].quaternion);
+				buttPosition.position.copy(others[i].position);
+				buttPosition.translateZ(-others[i].radius);
+
+				let dist = facePosition.position.distanceTo(buttPosition.position);
+				return dist < 1;
+			} 
+		}
+		return false;
 	}
 
 	function steer(others) {
@@ -98,31 +126,30 @@ export default function CharacterAI(input, controller, dialog, debug) {
 	this.update = function(timeElapsed, others) {
 		if (!input || !controller) return;
 
+
 		if (!talkedToPlayer && !others[0].isTalking && !input.jump) {
 			if (checkPlayer(others[0])) {
 				talkedToPlayer = true;
 				input.killActions();
-				
 				// turn to player ... 
-				let alignment = calculateAlignment(others[0]);
-				// console.log('align', alignment.z > threshold, alignment.z < -threshold);
-				// console.log(Math.abs(alignment.z) );
-				let alignTime = 0;
-				if (Math.abs(alignment.z) > threshold) {
-					alignTime = Math.abs(alignment.z) * 2.5;
-					input.addAction(alignment.z > 0 ? 'left' : 'right', alignTime);
-				}
-				input.addAction('talk', 30, alignTime + 5); // delay
-				window.postMessage({ aiMessage: dialog });
+				const alignment = calculateAlignment(others[0]);
+				const alignTime = Math.abs(alignment) * 3;
+				input.addAction(alignment > 0 ? 'right' : 'left', alignTime);
+				input.addAction('talk', 30, alignTime + 1, () => {
+					window.postMessage({ aiMessage: dialog });
+				});
 			}
 		}
 
-		if (talkedToPlayer) {
-			// console.log(input);
-		}
-		
 		if (!input.hasAction('talk')) {
-			this.flock(others);
+			if (sniffCheck(others)) {
+				input.killActions();
+				input.addAction('sniff', 20);
+			}
+		}
+
+		if (!input.hasAction('talk') && !input.hasAction('sniff')) {
+			// this.flock(others);
 		}
 
 		input.update(timeElapsed);

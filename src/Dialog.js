@@ -20,9 +20,8 @@ export default function Dialog(w, h) {
 	let dialog;
 
 	window.start = function() {
-		console.log('dialog', lines);
 		let indexString = "abcdefghijklmnopqrstuvwxyz.?'";
-		dialog = new Text(200, h - 200, 'welcome to hell', 32, lines.anims.text.lettering, indexString);
+		dialog = new Text(100, h - 200, 'welcome to hell', 32, lines.anims.text.lettering, indexString);
 	};
 
 	// uses its own draw update -- combine with animate -- maybe better to have separate

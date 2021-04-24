@@ -43,7 +43,7 @@ export default function Physics(scene, hexMap, sideLength, models) {
 
 	// world.addContactMaterial(physics_physics);
 
-	scene.add(new THREE.AxesHelper(3));
+	// scene.add(new THREE.AxesHelper(3)); // center of scene
 
 // grund
 	const ground = new Ground();

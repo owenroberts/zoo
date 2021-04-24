@@ -57,8 +57,9 @@ export default function CharacterAIInput(debug) {
 				action.count < action.delay + action.interval &&
 				!keys[key]) {
 				keys[key] = true;
+				if (action.callback) action.callback();
 			}
-			if (action.count > action.interval) {
+			if (action.count > action.interval + action.delay) {
 				keys[key] = false;
 				delete actions[key];
 			}
@@ -71,13 +72,13 @@ export default function CharacterAIInput(debug) {
 		return actions[key];
 	};
 
-	this.addAction = function(key, duration, delay) {
+	this.addAction = function(key, duration, delay, callback) {
 		if (isMoving) {
-			// keys[key] = true;
 			actions[key] = {
 				count: 0,
 				interval: duration * 100,
-				delay: delay || 0,
+				delay: delay * 100 || 0,
+				callback: callback
 			};
 		}
 	};

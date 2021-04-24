@@ -15,8 +15,10 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 
 	let mesh, mixer, stateMachine;
 	let body, debugMesh, axesHelper;
-	let container;
-	
+	let radius;
+
+	const container = new THREE.Group();
+		
 	const animations = {};
 	const contactNormal = new CANNON.Vec3();
 	const upAxis = new CANNON.Vec3(0, 1, 0);
@@ -37,7 +39,6 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 	init();
 	
 	function init() {
-		container = new THREE.Group(); // used to ground mesh
 		scene.add(container);
 		
 		const material = getToonMaterial({
@@ -83,14 +84,8 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		// physics
 		const box = new THREE.Box3().setFromObject(mesh);
 
-		const radius = (box.max.y - box.min.y) / 2;
+		radius = (box.max.y - box.min.y) / 2;
 		mesh.position.y -= radius;
-
-		if (debug) {
-			const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x22ffaa, wireframe: true });
-			debugMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), debugMaterial);
-			scene.add(debugMesh);
-		}
 
 		// mesh.rotation.y = -Math.PI * 0.66;
 		mesh.rotation.y = -Math.PI * 0.5;
@@ -110,7 +105,6 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		if (position) body.position.set(...position);
 		else body.position.set(0, 10, 0);
 
-		
 		body.linearDamping = 0.99;
 		body.angularDamping = 0.99;
 		body.collisionFilterGroup = 1;
@@ -118,14 +112,27 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		physics.addBody(body);
 
 		if (input.isAI) {
-			container.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), random(Math.PI * 2));
+			// container.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), random(Math.PI * 2));
 			// container.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), Math.PI * 2);
-
 		}
 
+
 		if (debug) {
+			const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x22ffaa, wireframe: true });
+			debugMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), debugMaterial);
+			scene.add(debugMesh);
+
 			axesHelper = new THREE.AxesHelper( 1 );
 			scene.add( axesHelper );
+
+			const buttPos = new THREE.AxesHelper(0.5);
+			buttPos.position.set(0, 0, -radius);
+			container.add(buttPos);
+
+			const facePos = new THREE.AxesHelper(0.5);
+			facePos.position.set(0, 0, radius + 0.5);
+			container.add(facePos);
+
 		}
 		
 		body.addEventListener('collide', onCollision);
@@ -144,14 +151,6 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 			if (input.isAI) input.onHitGround();
 		} else {
 			if (input.isAI) input.onHitWall();
-			// if (this.isPlayer && contact.bi.isAI) {
-			// 	// hit ai
-			// 	console.log('player hit ai', contactNormal);
-
-			// }
-			// if (input.isAI && contact.bi.isPlayer) {
-			// 	console.log('ai hit player', contactNormal);
-			// }
 		}
 	}
 
@@ -282,6 +281,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 			velocity: body.velocity,
 			quaternion: container.quaternion.clone(),
 			isTalking: this.isTalking,
+			radius: radius,
 		};
 	};
 

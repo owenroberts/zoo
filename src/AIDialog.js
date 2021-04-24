@@ -4,10 +4,9 @@
 
 export default function AIDialog() {
 	return [
-		"hello this is a test dialog",
+		"what happened to the food?",
 		"i'm starving",
 		"where did the humans go?",
-		"what happened to the food",
 		"there's poop everywhere",
 		"i don't want to be eaten",
 		"i'm scared to leave",
