@@ -173,7 +173,6 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		const _A = new THREE.Vector3();
 		const _R = controlObject.quaternion.clone();
 
-
 		if (input.jump && !jump.started && jump.count < 2) {
 			if (jump.count == 0) {
 				jump.started = true;

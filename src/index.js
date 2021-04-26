@@ -34,7 +34,6 @@ const modelLoader = new ModelLoader(() => {
 let ais;
 let dialog = new Dialog(w, h);
 let voiceSynth = new VoiceSynth();
-console.log(dialog);
 
 function init() {
 	

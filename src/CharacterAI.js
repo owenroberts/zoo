@@ -12,10 +12,10 @@ export default function CharacterAI(input, controller, dialog, debug) {
 
 	// params for different types/species ?
 	const flockRadius = 10;
-	const threshold = 0.5;
+	const threshold = 1;
 	const alignLevel = 1; // smaller is more aligned
-	const centerLevel = 20; // smaller is more centered
-	const seperationLevel = 10; // smaller more seperate
+	const centerLevel = 30; // smaller is more centered
+	const seperationLevel = 20; // smaller more seperate
 
 	const normalQuaternion = new THREE.Quaternion();
 	
@@ -53,6 +53,20 @@ export default function CharacterAI(input, controller, dialog, debug) {
 		return dir * start.quaternion.angleTo(end.quaternion);
 	}
 
+	function talkToPlayer(player) {
+		if (checkPlayer(player)) {
+			talkedToPlayer = true;
+			input.killActions();
+			// turn to player ... 
+			let direction = directionToPlayer(player);
+			const alignTime = Math.abs(direction) * 3;
+			input.addAction(direction > 0 ? 'right' : 'left', alignTime);
+			input.addAction('talk', 30, alignTime + 1, () => {
+				window.postMessage({ aiMessage: dialog });
+			});
+		}
+	}
+
 	function steer(others) {
 		let alignment = new THREE.Vector3(); // alignment
 		let center = new THREE.Vector3(); // cohesion
@@ -82,56 +96,42 @@ export default function CharacterAI(input, controller, dialog, debug) {
 			alignment.divideScalar(alignLevel);
 			alignment.sub(velocity);
 
-			center.divideScalar(total);
-			center.sub(position);
-			center.divideScalar(centerLevel);
-			center.applyQuaternion(quaternion);
-			alignment.add(center);
 
-			separation.divideScalar(total);
-			separation.divideScalar(seperationLevel);
-			alignment.add(separation);
+			// center.divideScalar(total);
+			// center.sub(position);
+			// center.divideScalar(centerLevel);
+			// center.applyQuaternion(quaternion);
+			// alignment.add(center);
+
+			// separation.divideScalar(total);
+			// separation.divideScalar(seperationLevel);
+			// alignment.add(separation);
 		} else {
 			return false;
 		}
 		return alignment;
 	}
 
-	this.flock = function(others) {
+	function flock(others) {
 		const steering = steer(others);
 
 		if (steering) {
-			// if (debug) console.log(steering.z);
-			if (steering.z > threshold) {
-				input.addAction('left', 5);
-				input.addAction('forward', 10);
-			}
-			else if (steering.z < -threshold) {
-				input.addAction('right', 5);
-				input.addAction('forward', 10);
-			}
+			// log.innerHTML = `${steering.x}, <br> ${steering.y}, <br> ${steering.z}`;
+			// if (steering.z > threshold) {
+			// 	// input.addAction('left', 1);
+			// 	input.addAction('forward', 10);
+			// }
+			// else if (steering.z < -threshold) {
+			// 	// input.addAction('right', 1);
+			// 	input.addAction('forward', 10);
+			// }
 		}
 	};
 
 	this.update = function(timeElapsed, others) {
 		if (!input || !controller) return;
 
-		
-
-
-		if (!talkedToPlayer && !others[0].isTalking && !input.jump) {
-			if (checkPlayer(others[0])) {
-				talkedToPlayer = true;
-				input.killActions();
-				// turn to player ... 
-				let direction = directionToPlayer(others[0]);
-				const alignTime = Math.abs(direction) * 3;
-				input.addAction(direction > 0 ? 'right' : 'left', alignTime);
-				input.addAction('talk', 30, alignTime + 1, () => {
-					window.postMessage({ aiMessage: dialog });
-				});
-			}
-		}
+		// if (!talkedToPlayer && !others[0].isTalking && !input.jump) talkToPlayer(others[0])
 
 		if (!input.hasAction('talk')) {
 			if (controller.sniffCheck(others)) {
@@ -141,7 +141,7 @@ export default function CharacterAI(input, controller, dialog, debug) {
 		}
 
 		if (!input.hasAction('talk') && !input.hasAction('sniff')) {
-			// this.flock(others);
+			flock(others);
 		}
 
 		input.update(timeElapsed);
