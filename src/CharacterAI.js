@@ -28,7 +28,7 @@ export default function CharacterAI(input, controller, dialog, debug) {
 		return distance < playerTalkDistance;
 	}
 
-	function directionToPlayer(other) { // other is player here
+	function directionTo(target) { // other is player here
 		let { position, quaternion } = controller.getProps();
 
 		const start = new THREE.Object3D();
@@ -36,7 +36,7 @@ export default function CharacterAI(input, controller, dialog, debug) {
 		start.quaternion.copy(quaternion);
 
 		const end = start.clone();
-		end.lookAt(other.position);
+		end.lookAt(target);
 
 		const startLargerThanHalfPI = start.quaternion.angleTo(normalQuaternion) > Math.PI / 2;
 		const endLargerThanHalfPI = end.quaternion.angleTo(normalQuaternion) > Math.PI / 2;
@@ -58,7 +58,7 @@ export default function CharacterAI(input, controller, dialog, debug) {
 			talkedToPlayer = true;
 			input.killActions();
 			// turn to player ... 
-			let direction = directionToPlayer(player);
+			let direction = directionTo(player.position);
 			const alignTime = Math.abs(direction) * 3;
 			input.addAction(direction > 0 ? 'right' : 'left', alignTime);
 			input.addAction('talk', 30, alignTime + 1, () => {
@@ -97,25 +97,81 @@ export default function CharacterAI(input, controller, dialog, debug) {
 			alignment.sub(velocity);
 
 
-			// center.divideScalar(total);
-			// center.sub(position);
-			// center.divideScalar(centerLevel);
-			// center.applyQuaternion(quaternion);
-			// alignment.add(center);
+			center.divideScalar(total);
+			center.sub(position);
+			center.divideScalar(centerLevel);
+			center.applyQuaternion(quaternion);
+			alignment.add(center);
 
-			// separation.divideScalar(total);
-			// separation.divideScalar(seperationLevel);
-			// alignment.add(separation);
+			separation.divideScalar(total);
+			separation.divideScalar(seperationLevel);
+			alignment.add(separation);
 		} else {
 			return false;
 		}
 		return alignment;
 	}
 
-	function flock(others) {
-		const steering = steer(others);
+	function newSteer(others) {
+		const { id, position, velocity, quaternion } = controller.getProps();
+		const v = new THREE.Vector3(); // flock velocity
+		const center = new THREE.Vector3();
+		// center.add(position);
 
-		if (steering) {
+		let total = 0;
+
+		for (let i = 0; i < others.length; i++) {
+			const other = others[i];
+			if (other.id != id) {
+				const distance = position.distanceTo(other.position);
+				if (distance < flockRadius) {
+					total++;
+					center.add(other.position);
+					v.add(other.velocity);
+
+					// separation
+					const dist = other.position.clone().sub(position);
+					dist.divideScalar(distance);
+					dist.multiplyScalar(1); // seperationLevel
+					center.sub(dist);
+				}
+			}
+		}
+
+		center.divideScalar(total);
+
+		v.divideScalar(total);
+		v.divideScalar(1); // align level
+		v.sub(velocity);
+		center.add(v);
+
+		// turn toward center
+		const direction = directionTo(center);
+		// log.innerHTML = direction;
+		if (Math.abs(direction) > Math.PI / 4) {
+ 			const alignTime = Math.abs(direction) * 2;
+			input.addAction(direction > 0 ? 'right' : 'left', alignTime);
+		}
+		
+		if (total > 0) {
+			const dist = position.distanceTo(center);
+			if (dist > 2) input.addAction('forward', dist);
+		}
+
+
+		window.postMessage({
+			testAxes: {
+				position: center,
+				quaternion: new THREE.Quaternion().toArray(),
+				length: 1
+			}
+		});
+	}
+
+	function flock(others) {
+		if (!input.jump) newSteer(others);
+
+		// if (steering) {
 			// log.innerHTML = `${steering.x}, <br> ${steering.y}, <br> ${steering.z}`;
 			// if (steering.z > threshold) {
 			// 	// input.addAction('left', 1);
@@ -125,7 +181,7 @@ export default function CharacterAI(input, controller, dialog, debug) {
 			// 	// input.addAction('right', 1);
 			// 	input.addAction('forward', 10);
 			// }
-		}
+		// }
 	};
 
 	this.update = function(timeElapsed, others) {
