@@ -17,7 +17,8 @@ export default function CharacterAI(input, controller, dialog, debug) {
 	const centerLevel = 20; // smaller is more centered
 	const seperationLevel = 10; // smaller more seperate
 
-	// player talk vars
+	const normalQuaternion = new THREE.Quaternion();
+	
 	const playerTalkDistance = 5;
 	let talkedToPlayer = false;
 
@@ -27,7 +28,7 @@ export default function CharacterAI(input, controller, dialog, debug) {
 		return distance < playerTalkDistance;
 	}
 
-	function calculateAlignment(other) { // other is player here
+	function directionToPlayer(other) { // other is player here
 		let { position, quaternion } = controller.getProps();
 
 		const start = new THREE.Object3D();
@@ -37,30 +38,19 @@ export default function CharacterAI(input, controller, dialog, debug) {
 		const end = start.clone();
 		end.lookAt(other.position);
 
-		// direction * angle 
-		return Math.sign(start.rotation.y - end.rotation.y) * start.quaternion.angleTo(end.quaternion);
-	}
+		const startLargerThanHalfPI = start.quaternion.angleTo(normalQuaternion) > Math.PI / 2;
+		const endLargerThanHalfPI = end.quaternion.angleTo(normalQuaternion) > Math.PI / 2;
+		const startAngleLargerThanEnd = Math.abs(start.rotation.y) > Math.abs(end.rotation.y);
 
-	function sniffCheck(others) {
-		// performance refactor
-		const { id, position, quaternion, radius } = controller.getProps();
-		const facePosition = new THREE.Object3D();
-		facePosition.applyQuaternion(quaternion);
-		facePosition.position.copy(position);
-		facePosition.translateZ(radius + 0.5);
+		let dir = Math.sign(start.rotation.y - end.rotation.y);
 
-		for (let i = 0; i < others.length; i++) {
-			if (others[i].id != id) {
-				const buttPosition = new THREE.Object3D();
-				buttPosition.applyQuaternion(others[i].quaternion);
-				buttPosition.position.copy(others[i].position);
-				buttPosition.translateZ(-others[i].radius);
+		if ((endLargerThanHalfPI && !startLargerThanHalfPI && startAngleLargerThanEnd) ||
+  			(startLargerThanHalfPI && (endLargerThanHalfPI || !startAngleLargerThanEnd))) {
+      		dir *= -1;
+  		}
 
-				let dist = facePosition.position.distanceTo(buttPosition.position);
-				return dist < 1;
-			} 
-		}
-		return false;
+		// return dir > 0 ? 'right' : 'left';
+		return dir * start.quaternion.angleTo(end.quaternion);
 	}
 
 	function steer(others) {
@@ -126,15 +116,17 @@ export default function CharacterAI(input, controller, dialog, debug) {
 	this.update = function(timeElapsed, others) {
 		if (!input || !controller) return;
 
+		
+
 
 		if (!talkedToPlayer && !others[0].isTalking && !input.jump) {
 			if (checkPlayer(others[0])) {
 				talkedToPlayer = true;
 				input.killActions();
 				// turn to player ... 
-				const alignment = calculateAlignment(others[0]);
-				const alignTime = Math.abs(alignment) * 3;
-				input.addAction(alignment > 0 ? 'right' : 'left', alignTime);
+				let direction = directionToPlayer(others[0]);
+				const alignTime = Math.abs(direction) * 3;
+				input.addAction(direction > 0 ? 'right' : 'left', alignTime);
 				input.addAction('talk', 30, alignTime + 1, () => {
 					window.postMessage({ aiMessage: dialog });
 				});
@@ -142,7 +134,7 @@ export default function CharacterAI(input, controller, dialog, debug) {
 		}
 
 		if (!input.hasAction('talk')) {
-			if (sniffCheck(others)) {
+			if (controller.sniffCheck(others)) {
 				input.killActions();
 				input.addAction('sniff', 20);
 			}

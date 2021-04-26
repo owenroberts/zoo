@@ -18,7 +18,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 	let radius;
 
 	const container = new THREE.Group();
-		
+
 	const animations = {};
 	const contactNormal = new CANNON.Vec3();
 	const upAxis = new CANNON.Vec3(0, 1, 0);
@@ -35,9 +35,10 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 
 	const groundRaycaster = new THREE.Raycaster();
 	const groundRay = new THREE.Vector3(0, -1, 0);
+	const buttSniffDistance = 0.5;
 
 	init();
-	
+
 	function init() {
 		scene.add(container);
 		
@@ -112,10 +113,9 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		physics.addBody(body);
 
 		if (input.isAI) {
-			// container.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), random(Math.PI * 2));
-			// container.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), Math.PI * 2);
+			container.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), random(Math.PI * 2));
+			// container.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), -Math.PI + 0.001);
 		}
-
 
 		if (debug) {
 			const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x22ffaa, wireframe: true });
@@ -125,13 +125,13 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 			axesHelper = new THREE.AxesHelper( 1 );
 			scene.add( axesHelper );
 
-			const buttPos = new THREE.AxesHelper(0.5);
-			buttPos.position.set(0, 0, -radius);
-			container.add(buttPos);
+			// const buttPos = new THREE.AxesHelper(0.5);
+			// buttPos.position.set(0, 0, -radius);
+			// container.add(buttPos);
 
-			const facePos = new THREE.AxesHelper(0.5);
-			facePos.position.set(0, 0, radius + 0.5);
-			container.add(facePos);
+			// const facePos = new THREE.AxesHelper(0.5);
+			// facePos.position.set(0, 0, radius + 0.5);
+			// container.add(facePos);
 
 		}
 		
@@ -277,12 +277,31 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 	this.getProps = function() {
 		return {
 			id: body.id,
-			position: container.position.clone(),
 			velocity: body.velocity,
+			position: container.position.clone(),
 			quaternion: container.quaternion.clone(),
-			isTalking: this.isTalking,
 			radius: radius,
+			isTalking: this.isTalking,
 		};
+	};
+
+	this.sniffCheck = function(others) {
+		const face = new THREE.Object3D();
+		face.applyQuaternion(container.quaternion);
+		face.position.copy(container.position);
+		face.translateZ(radius + 0.5);
+
+		for (let i = 0; i < others.length; i++) {
+			if (others[i].id != body.id) {
+				const butt = new THREE.Object3D();
+				butt.applyQuaternion(others[i].quaternion);
+				butt.position.copy(others[i].position);
+				butt.translateZ(-others[i].radius);
+				return face.position.distanceTo(butt.position) < buttSniffDistance;
+			}
+		}
+
+		return false;
 	};
 
 	this.setDebug = function(isDebug) {
@@ -290,7 +309,6 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		stateMachine.debug = isDebug;
 		debug = isDebug;
 	};
-
 }
 
 export { CharacterController };

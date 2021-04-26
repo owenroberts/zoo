@@ -16,3 +16,11 @@ body {
 	position: fixed;
 	pointer-events: none;
 }
+
+#log {
+	position: fixed;
+	top: 50px;
+	left: 10px;
+}
+
+}

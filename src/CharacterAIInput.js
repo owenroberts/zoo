@@ -66,7 +66,6 @@ export default function CharacterAIInput(debug) {
 		}
 	};
 
-
 	// if has action with delay
 	this.hasAction = function(key) {
 		return actions[key];

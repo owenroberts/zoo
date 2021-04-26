@@ -48,5 +48,8 @@ export default function AI(num, map, sideLength, scene, physics, modelLoader) {
 		for (let i = 0; i < AIs.length; i++) {
 			AIs[i].update(Math.min(updateTimeMax, timeElapsed), props);
 		}
+
+		props.shift();
+		return props; // return props to player for buff sniff action
 	};
 }

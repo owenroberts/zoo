@@ -9,12 +9,16 @@ function CharacterControllerInput() {
 		right: false,
 		jump: false,
 		run: false,
+		sniff: true,
 	};
 
 	for (const key in keys) {
 		Object.defineProperty(this, key, {
 			get: function() {
 				return keys[key]
+			},
+			set: function(value) {
+				keys[key] = value;
 			}
 		});
 	};

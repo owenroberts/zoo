@@ -88,7 +88,8 @@ function animate() {
 		if (playerController.isTalking) {
 			if (!dialog.isActive()) playerController.isTalking = false; 
 		}
-		ais.update(timeElapsed, playerController.getProps());
+		const aiProps = ais.update(timeElapsed, playerController.getProps());
+		playerInput.sniff = playerController.sniffCheck(aiProps);
 
 		physics.update(timeElapsed);
 		controls.update();
@@ -114,14 +115,12 @@ window.addEventListener("message", (event) => {
 		voiceSynth.speak(event.data.aiMessage);
 		playerController.isTalking = true;
 	}
-	// console.log(event.data.);
+
 	if (event.data.testAxes) {
-		// console.log('test')
-		const { position, quaternion } = event.data.testAxes;
-		const axes = new THREE.AxesHelper( 3 );
+		const { position, quaternion, length } = event.data.testAxes;
+		const axes = new THREE.AxesHelper(length || 3);
 		axes.position.copy(position);
 		axes.quaternion.copy(new THREE.Quaternion().fromArray(quaternion));
-		// console.log(axes);
 		scene.add(axes);
 	}
 }, false);
