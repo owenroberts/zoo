@@ -3,6 +3,7 @@
 */
 
 import * as THREE from 'three';
+import { choice } from './Cool';
 
 export default function CharacterAI(input, controller, dialog, debug) {
 
@@ -12,10 +13,9 @@ export default function CharacterAI(input, controller, dialog, debug) {
 
 	// params for different types/species ?
 	const flockRadius = 10;
-	const threshold = 1;
-	const alignLevel = 2; // smaller is more aligned
-	const centerLevel = 1; // smaller is more centered
-	const seperationLevel = 1; // smaller more seperate
+	const alignLevel = choice(1, 2, 3);
+	const centerLevel = choice(1, 1, 2); 
+	const seperationLevel = choice(1, 2, 2, 3);
 
 	const normalQuaternion = new THREE.Quaternion();
 	
@@ -69,10 +69,8 @@ export default function CharacterAI(input, controller, dialog, debug) {
 
 	function flock(others) {
 		const { id, position, velocity, quaternion } = controller.getProps();
-		const v = new THREE.Vector3(); // flock velocity
+		const alignment = new THREE.Vector3(); // flock velocity
 		const center = new THREE.Vector3();
-		// center.add(position);
-
 		let total = 0;
 
 		for (let i = 0; i < others.length; i++) {
@@ -82,27 +80,26 @@ export default function CharacterAI(input, controller, dialog, debug) {
 				if (distance < flockRadius) {
 					total++;
 					center.add(other.position);
-					v.add(other.velocity);
+					alignment.add(other.velocity);
 
 					// separation
-					const dist = other.position.clone().sub(position);
-					dist.divideScalar(distance);
-					dist.multiplyScalar((flockRadius - distance)); // seperationLevel
-					dist.multiplyScalar(seperationLevel);
-					center.sub(dist);
+					const separation = other.position.clone().sub(position);
+					separation.divideScalar(distance);
+					separation.multiplyScalar((flockRadius - distance)); // seperationLevel
+					separation.multiplyScalar(seperationLevel);
+					center.sub(separation); // should be after loop?
 				}
 			}
 		}
 
 		center.divideScalar(total);
 
-		v.divideScalar(total);
-		v.multiplyScalar(alignLevel); // align level
-		center.add(v);
+		alignment.divideScalar(total);
+		alignment.multiplyScalar(alignLevel); // align level
+		center.add(alignment);
 
 		// turn toward center
 		const direction = directionTo(center);
-		// log.innerHTML = direction;
 		if (Math.abs(direction) > Math.PI / 4) {
  			const alignTime = Math.abs(direction) * 2;
 			input.addAction(direction > 0 ? 'right' : 'left', alignTime);
@@ -113,13 +110,6 @@ export default function CharacterAI(input, controller, dialog, debug) {
 			if (dist > 2) input.addAction('forward', dist);
 		}
 
-		// window.postMessage({
-		// 	testAxes: {
-		// 		position: center,
-		// 		quaternion: new THREE.Quaternion().toArray(),
-		// 		length: 1
-		// 	}
-		// });
 	}
 
 	this.update = function(timeElapsed, others) {

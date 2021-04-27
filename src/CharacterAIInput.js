@@ -9,6 +9,7 @@ export default function CharacterAIInput(debug) {
 	this.isAI = true;
 	
 	let actions = {};
+	let actionChance = random(0.01, 0.03);
 	let isMoving = false;
 	const keys = {
 		forward: false,
@@ -49,7 +50,7 @@ export default function CharacterAIInput(debug) {
 		}
 
 		// if not actions, chance to add an action
-		if (Object.keys(actions).length == 0 && chance(0.01)) {
+		if (Object.keys(actions).length == 0 && chance(actionChance)) {
 			this.addAction('forward', random(5, 20));
 			if (chance(0.5)) this.addAction(chance(0.5) ? 'left' : 'right', random(5, 10));
 		}
@@ -77,7 +78,6 @@ export default function CharacterAIInput(debug) {
 			keys[key] = false;
 		}
 	};
-
 
 	// wait til char hits ground to move
 	this.onHitGround = function() {
