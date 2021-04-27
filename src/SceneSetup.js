@@ -77,7 +77,8 @@ export default function setupScene(modelLoader) {
 			.load(`./static/textures/b${choice(1,2,3,4,5,6)}.png`);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
-		texture.repeat.set( 8, 8 );
+		texture.repeat.set( 16, 16 );
+
 		const buildingMaterial = getToonMaterial({
 			color: 0xb6d1fc,
 			map: texture,
@@ -102,10 +103,10 @@ export default function setupScene(modelLoader) {
 		// ground 256 x 256
 		for (let i = 0; i < 2; i++) {
 			let z = -120 + -32 * i;
-			// let z = -120;
 			for (let j = 0; j < 4; j++) {
 				const r = [Math.PI, 0, -Math.PI/2, Math.PI/2][j];
 				z *= j % 1 == 0 ? -1 : 1;
+				
 				for (let x = 24; x < (256 - 24); x += 12) {
 					let _x = j > 1 ? z + 128 : x;
 					let _z = j > 1 ? x - 128: z;
@@ -119,8 +120,6 @@ export default function setupScene(modelLoader) {
 		}
 
 		for (const m in buildingMeshes) {
-			// console.log('buildings', m, buildingMeshes[m].count);
-			console.log('building count', buildingMeshes[m].count)
 			buildingMeshes[m].mesh.count = buildingMeshes[m].count;
 		}
 	}
