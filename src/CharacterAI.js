@@ -28,7 +28,7 @@ export default function CharacterAI(input, controller, dialog, debug) {
 		return distance < playerTalkDistance;
 	}
 
-	function directionTo(target) { // other is player here
+	function directionTo(target) {
 		let { position, quaternion } = controller.getProps();
 
 		const start = new THREE.Object3D();

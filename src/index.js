@@ -72,7 +72,7 @@ function init() {
 	// controls.maxDistance = 50;
 	// controls.enableZoom = false;
 
-	ais = new AI(10, hexMap, sideLength, scene, physics, modelLoader);
+	ais = new AI(20, hexMap, sideLength, scene, physics, modelLoader);
 	
 }
 

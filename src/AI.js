@@ -30,12 +30,6 @@ export default function AI(num, map, sideLength, scene, physics, modelLoader) {
 		const dialog = dialogs.splice(Math.floor(random(dialogs.length)), 1)[0];
 		AIs.push(new CharacterAI(input, controller, dialog));
 	}
-	// const input = new CharacterAIInput();
-	// AIs.push(new CharacterAI(
-	// 	input,
-	// 	new CharacterController(scene, physics, modelLoader, input, [12, 8, 12]),
-	// 	dialogs[0],
-	// ));
 
 	this.update = function(timeElapsed, playerProps) {
 		

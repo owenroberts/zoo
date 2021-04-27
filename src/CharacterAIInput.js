@@ -32,23 +32,6 @@ export default function CharacterAIInput(debug) {
 		});
 	};
 
-	function addActions() {
-		
-		// reset everything
-		actions = [];
-		for (const key in keys) {
-			keys[key] = false;
-		}
-		
-		if (chance(0.5)) {
-			actions.push(new Action('forward', random(100, 200)));
-			// if (chance(0.1)) actions.push(new Action('run', random(50, 100)));
-			if (chance(0.2)) actions.push(new Action(chance(0.5) ? 'left' : 'right', random(25, 50)));
-		} else if (chance(0.25)) {
-			// actions.push(new Action('backward', random(100, 200)));
-		}
-	}
-
 	this.update = function(timeElapsed) {
 		for (const key in actions) {
 			let action = actions[key];
@@ -63,6 +46,12 @@ export default function CharacterAIInput(debug) {
 				keys[key] = false;
 				delete actions[key];
 			}
+		}
+
+		// if not actions, chance to add an action
+		if (Object.keys(actions).length == 0 && chance(0.01)) {
+			this.addAction('forward', random(5, 20));
+			if (chance(0.5)) this.addAction(chance(0.5) ? 'left' : 'right', random(5, 10));
 		}
 	};
 
@@ -88,6 +77,7 @@ export default function CharacterAIInput(debug) {
 			keys[key] = false;
 		}
 	};
+
 
 	// wait til char hits ground to move
 	this.onHitGround = function() {
