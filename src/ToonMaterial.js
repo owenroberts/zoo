@@ -21,7 +21,6 @@ export default function getToonMaterial(params) {
 		specular: new THREE.Color(0x00000),
 		// gradientMap: gradientMap,
 		shininess: 0,
-		// map: params.map,
 	});
 	if (params.map) material.map = params.map;
 	return material;

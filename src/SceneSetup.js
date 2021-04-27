@@ -73,8 +73,14 @@ export default function setupScene(modelLoader) {
 	
 	function addBuildings() {
 		// add shadows -- https://discourse.threejs.org/t/shadow-for-instances/7947/10
+		const texture = new THREE.TextureLoader()
+			.load(`./static/textures/b${choice(1,2,3,4,5,6)}.png`);
+		texture.wrapS = THREE.RepeatWrapping;
+		texture.wrapT = THREE.RepeatWrapping;
+		texture.repeat.set( 8, 8 );
 		const buildingMaterial = getToonMaterial({
 			color: 0xb6d1fc,
+			map: texture,
 			// emissiveColor: 0x1e00ff,
 		});
 		const dummy = new THREE.Object3D();
@@ -114,6 +120,7 @@ export default function setupScene(modelLoader) {
 
 		for (const m in buildingMeshes) {
 			// console.log('buildings', m, buildingMeshes[m].count);
+			console.log('building count', buildingMeshes[m].count)
 			buildingMeshes[m].mesh.count = buildingMeshes[m].count;
 		}
 	}

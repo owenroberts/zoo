@@ -3,7 +3,7 @@ import * as CANNON from 'cannon-es';
 import { CharacterFSM } from './CharacterStates';
 import { CharacterControllerInput } from './CharacterControllerInput';
 import getToonMaterial from './ToonMaterial';
-import { random } from './Cool';
+import { choice, random } from './Cool';
 
 function CharacterController(scene, physics, modelLoader, input, position) {
 	
@@ -41,11 +41,17 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 
 	function init() {
 		scene.add(container);
+
+		const texture = new THREE.TextureLoader().load(`./static/textures/g${choice(1,2,3,4,5)}.png`);
+		texture.wrapS = THREE.RepeatWrapping;
+		texture.wrapT = THREE.RepeatWrapping;
+		texture.repeat.set( 8, 8 );
 		
 		const material = getToonMaterial({
 			color: 0x6e619e,
 			skinning: true,
 			emissiveColor: 0x1e00ff,
+			map: texture,
 		});
 
 		const eyeMaterial = getToonMaterial({
