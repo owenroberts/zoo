@@ -19,7 +19,7 @@ export default function AI(num, map, sideLength, scene, physics, modelLoader) {
 
 	for (let i = 0; i < num; i++) {
 		let hex = hexes.splice(Math.floor(random(hexes.length)), 1)[0];
-		// positions.push(hex.calculatePosition(sideLength));
+		positions.push(hex.calculatePosition(sideLength));
 	}
 
 	for (let i = 0; i < positions.length; i++) {
@@ -28,14 +28,14 @@ export default function AI(num, map, sideLength, scene, physics, modelLoader) {
 		const position = [x, 8, y];
 		const controller = new CharacterController(scene, physics, modelLoader, input, position);
 		const dialog = dialogs.splice(Math.floor(random(dialogs.length)), 1)[0];
-		// AIs.push(new CharacterAI(input, controller, dialog));
+		AIs.push(new CharacterAI(input, controller, dialog));
 	}
-	const input = new CharacterAIInput();
-	AIs.push(new CharacterAI(
-		input,
-		new CharacterController(scene, physics, modelLoader, input, [12, 8, 12]),
-		dialogs[0],
-	));
+	// const input = new CharacterAIInput();
+	// AIs.push(new CharacterAI(
+	// 	input,
+	// 	new CharacterController(scene, physics, modelLoader, input, [12, 8, 12]),
+	// 	dialogs[0],
+	// ));
 
 	this.update = function(timeElapsed, playerProps) {
 		
