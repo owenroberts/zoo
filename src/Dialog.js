@@ -20,7 +20,7 @@ export default function Dialog(w, h) {
 	let dialog;
 
 	window.start = function() {
-		let indexString = "abcdefghijklmnopqrstuvwxyz.?'";
+		let indexString = "abcdefghijklmnopqrstuvwxyz.?',";
 		dialog = new Text(100, h - 200, 'welcome to hell', 32, lines.anims.text.lettering, indexString);
 	};
 
