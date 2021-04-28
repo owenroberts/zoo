@@ -7,12 +7,12 @@ import { choice, random } from './Cool';
 import getToonMaterial from './ToonMaterial';
 import { bodyToMesh } from './lib/three-conversion-utils.js';
 
-const alphabet = 'abcdefghijklmnopqrstuvwxyz';
+
 const beckett = "Where now? Who now? When now? Unquestioning. I, say I. Unbelieving. Questions, hypotheses, call them that. Keep going, going on, call that going, call that on.";
 let count = 0;
 
 export default class Wall {
-	constructor(params, sideLength, modelLoader, ground, showHelper) {
+	constructor(params, sideLength, meshes, ground, showHelper) {
 		const { x, z, rotation, key } = params;
 		const y = ground.getClosestVert(x, z);
 
@@ -28,40 +28,37 @@ export default class Wall {
 
 		const groundMaterial = new CANNON.Material('ground')
 		this.body = new CANNON.Body({ mass: 0, groundMaterial })
-        this.body.position.set(x, y, z);
-        this.body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), params.rotation - Math.PI / 2);
+		this.body.position.set(x, y, z);
+		this.body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), params.rotation - Math.PI / 2);
 		
 		// use rotation of ground?
 		
 		// letters
+		const dummy = new THREE.Object3D();
 		
 		let _w = 0;
 		for (let _y = h - 1; _y > 0; _y -= 2) {
 			for (let _x = -sideLength / 2; _x < sideLength / 2 - _w / 2; _x += _w) {
+				
 				// const letter = choice(...alphabet.split(''));
-				const letter = beckett[count];
+				const letter = beckett[count].toLowerCase();
 				count++;
 				if (count >= beckett.length) count = 0;
-				if (alphabet.includes(letter.toLowerCase())) {
 
-					const mesh = modelLoader.getModel('letters', letter.toLowerCase());
-					mesh.traverse(child => {
-						if (child.constructor.name == 'Mesh') {
-							child.castShadow = true;
-							child.receiveShadow = true;
-							child.material = getToonMaterial({
-								color: 0x6f6c82,
-							});
-						}
-					});
-					const box = mesh.children[0].geometry.boundingBox;
+				if (Object.keys(meshes).includes(letter)) {
+					const mesh = meshes[letter].mesh;
+					const box = mesh.geometry.boundingBox;
 					_w = Math.abs(box.max.x - box.min.x);
 					const _h = Math.abs(box.max.y - box.min.y);
 					const _d = Math.abs(box.max.z - box.min.z);
-					mesh.position.x = _x + _w / 2;
-					mesh.position.y = _y - 2;
-					this.container.add(mesh);
 
+					dummy.position.copy(this.body.position);
+					dummy.quaternion.copy(this.body.quaternion);
+					dummy.translateX(_x + _w / 2);
+					dummy.translateY(_y - 2);
+					dummy.updateMatrix();
+					meshes[letter].mesh.setMatrixAt(meshes[letter].count++, dummy.matrix);
+					
 					const shape = new CANNON.Box(new CANNON.Vec3(_w / 2, _h / 2, _d / 2));
 					this.body.addShape(shape, new CANNON.Vec3(_x + _w / 2, _y - _h / 2, 0));
 
@@ -75,6 +72,7 @@ export default class Wall {
 				this.body, 
 				new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true }),
 			);
+			this.bodyMesh.position.copy(this.body.position);
 			this.bodyMesh.quaternion.copy(this.body.quaternion);
 			this.container.add(new THREE.AxesHelper(2));
 		}

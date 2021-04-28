@@ -125,7 +125,7 @@ export default function setupScene(modelLoader) {
 	}
 
 	addLighting();
-	// addBuildings();
+	addBuildings();
 	
 	return scene;
 
