@@ -45,7 +45,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		const texture = new THREE.TextureLoader().load(`./static/textures/g${choice(1,2,3,4,5)}.png`);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
-		texture.repeat.set( 8, 8 );
+		texture.repeat.set( 16, 16 );
 		
 		const material = getToonMaterial({
 			color: 0x6e619e,

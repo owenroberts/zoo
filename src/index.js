@@ -8,7 +8,9 @@ import { OrbitControls } from './OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 import { choice, random, chance } from './Cool';
+import Ground from './Ground';
 import setupScene from './SceneSetup';
+import addScenery from './Scenery';
 import HexMap from './HexMap';
 import Dialog from './Dialog';
 import AI from './AI';
@@ -18,13 +20,12 @@ import VoiceSynth from './AIVoiceSynth';
 let camera, scene, renderer, stats, dpr;
 let w = window.innerWidth, h = window.innerHeight;
 let controls;
-let hexMap, sideLength = 16;
+let sideLength = 16;
 // const cameraOffset = new THREE.Vector3(-120, 60, -120); // distant view for testing
 const cameraOffset = new THREE.Vector3(-6, 6, -8);
 let thirdPersonCamera;
 let physics;
 let playerInput, playerController;
-
 
 const modelLoader = new ModelLoader(() => {
 	init();
@@ -60,8 +61,16 @@ function init() {
 	window.addEventListener('resize', onWindowResize);
 
 // setup
-	hexMap = new HexMap(3, true);
-	physics = new Physics(scene, hexMap, sideLength, modelLoader);
+
+	const hexMap = new HexMap(3, true);
+	
+	const ground = new Ground();
+	scene.add(ground.mesh);
+	
+	physics = new Physics(scene, ground, hexMap, sideLength, modelLoader);
+
+	addScenery(scene, modelLoader, ground);
+
 	playerInput = new CharacterControllerInput();
 	playerController = new CharacterController(scene, physics, modelLoader, playerInput, [3, 8, 3]);
 	// thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
@@ -116,7 +125,9 @@ window.addEventListener("message", (event) => {
 	}
 
 	if (event.data.testAxes) {
-		const { position, quaternion, length } = event.data.testAxes;
+		let { position, quaternion, length } = event.data.testAxes;
+		if (!quaternion) quaternion = new THREE.Quaternion().toArray();
+		// console.log(position, quaternion)
 		const axes = new THREE.AxesHelper(length || 3);
 		axes.position.copy(position);
 		axes.quaternion.copy(new THREE.Quaternion().fromArray(quaternion));

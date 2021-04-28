@@ -115,7 +115,7 @@ export default function CharacterAI(input, controller, dialog, debug) {
 	this.update = function(timeElapsed, others) {
 		if (!input || !controller) return;
 
-		// if (!talkedToPlayer && !others[0].isTalking && !input.jump) talkToPlayer(others[0])
+		if (!talkedToPlayer && !others[0].isTalking && !input.jump) talkToPlayer(others[0])
 
 		if (!input.hasAction('talk')) {
 			if (controller.sniffCheck(others)) {

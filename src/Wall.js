@@ -12,19 +12,9 @@ const beckett = "Where now? Who now? When now? Unquestioning. I, say I. Unbeliev
 let count = 0;
 
 export default class Wall {
-	constructor(params, sideLength, modelLoader, groundVerts, showHelper) {
+	constructor(params, sideLength, modelLoader, ground, showHelper) {
 		const { x, z, rotation, key } = params;
-		
-		let closestVert, vertDistance;
-		for (let i = 0; i < groundVerts.length; i++) {
-			const distance = new THREE.Vector3(x, 3, z).distanceTo(groundVerts[i]);
-			// console.log(distance, vertDistance);
-			if (!vertDistance || distance < vertDistance) {
-				vertDistance = distance;
-				closestVert = groundVerts[i];
-			}
-		}
-		const y = closestVert.y;
+		const y = ground.getClosestVert(x, z);
 
 		// const distanceFromCenter = new THREE.Vector3(0, 0, 0).distanceTo(new THREE.Vector3(x, 0, z));
 		// const h = distanceFromCenter / 5; // probably need a better way to determine this ... 

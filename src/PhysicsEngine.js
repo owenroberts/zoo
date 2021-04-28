@@ -10,7 +10,7 @@ import Wall from './Wall';
 import Ground from './Ground';
 // import Ground from './GroundFlat';
 
-export default function Physics(scene, hexMap, sideLength, models) {
+export default function Physics(scene, ground, hexMap, sideLength, models) {
 
 	const castList = []; // so character knows whens its on the ground -- raycast
 
@@ -46,27 +46,17 @@ export default function Physics(scene, hexMap, sideLength, models) {
 	// scene.add(new THREE.AxesHelper(3)); // center of scene
 
 // grund
-	const ground = new Ground();
 	world.addBody(ground.body);
-	scene.add(ground.mesh);
 	addToCastList(ground.mesh);
-	ground.mesh.updateWorldMatrix();
-
-	// get height at verts to use for wall position
-	const groundVerts = ground.mesh.children[0].geometry.vertices.map(_v => {
-		const v = _v.clone();
-		v.applyMatrix4(ground.mesh.matrixWorld);
-		return new THREE.Vector3(v.x, v.y, v.z);
-	});
 
 // hex walls
 	const wallBodies = []; // dont need this if walls dont move
 	const walls = hexMap.getWalls(sideLength);
 	walls.forEach(params => {
-		const wall = new Wall(params, sideLength, models, groundVerts, false);
+		// const wall = new Wall(params, sideLength, models, ground, false);
 		// scene.add(wall.container);
 		// world.addBody(wall.body);
-		addToCastList(wall.container);
+		// addToCastList(wall.container);
 		// scene.add(wall.bodyMesh); // debug
 	});
 

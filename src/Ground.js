@@ -62,4 +62,24 @@ export default function Ground() {
 			child.receiveShadow = true;
 		}
 	});
+
+	this.mesh.updateWorldMatrix();
+
+	const verts = this.mesh.children[0].geometry.vertices.map(_v => {
+		const v = _v.clone();
+		v.applyMatrix4(this.mesh.matrixWorld);
+		return new THREE.Vector3(v.x, v.y, v.z);
+	});
+
+	this.getClosestVert = function(x, z) {
+		let closestVert, vertDistance;
+		for (let i = 0; i < verts.length; i++) {
+			const distance = new THREE.Vector3(x, 0, z).distanceTo(verts[i]);
+			if (!vertDistance || distance < vertDistance) {
+				vertDistance = distance;
+				closestVert = verts[i];
+			}
+		}
+		return closestVert.y;
+	};
 }

@@ -106,7 +106,7 @@ export default function setupScene(modelLoader) {
 			for (let j = 0; j < 4; j++) {
 				const r = [Math.PI, 0, -Math.PI/2, Math.PI/2][j];
 				z *= j % 1 == 0 ? -1 : 1;
-				
+
 				for (let x = 24; x < (256 - 24); x += 12) {
 					let _x = j > 1 ? z + 128 : x;
 					let _z = j > 1 ? x - 128: z;
@@ -124,49 +124,9 @@ export default function setupScene(modelLoader) {
 		}
 	}
 
-	function addTrees() {
-		const texture = new THREE.TextureLoader().load( './static/textures/tree.png' );
-		texture.wrapS = THREE.RepeatWrapping;
-		texture.wrapT = THREE.RepeatWrapping;
-		texture.repeat.set( 8, 8 );
-		const treeMaterial = getToonMaterial({
-			color: 0x6db390,
-			map: texture,
-			// emissiveColor: 0x1e00ff,
-		});
-
-		const trunkMaterial = getToonMaterial({
-			color: 0xe0d3da,
-			map: texture,
-			// emissiveColor: 0x1e00ff,
-		});
-
-
-		let b = 112; // bound
-		let long = distance(0, 0, b, b);
-		for (let x = -b; x < b; x += 8) {
-			for (let z = -b; z < b; z += 8) {
-				let d = distance(0, 0, x, z);
-				let pct = map(d, 0, long, 0, 0.5);
-				if (chance(pct)) {
-					const letter = choice(...'abcdef'.split(''));
-					const mesh = modelLoader.getModel('trees', letter);
-					mesh.children[0].children[0].material = treeMaterial;
-					mesh.children[0].children[1].material = trunkMaterial;
-					mesh.castSahdow = true;
-					mesh.position.set(x, 3, z);
-					mesh.rotation.y = random(Math.PI * 2);
-					scene.add(mesh);
-					
-				}
-			}
-		}
-	}
-
-
 	addLighting();
-	addBuildings();
-	// addTrees();
+	// addBuildings();
+	
 	return scene;
 
 }
