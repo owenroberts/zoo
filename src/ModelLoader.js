@@ -8,54 +8,60 @@ import cloneGltf from './lib/three-clone-gltf.js';
 
 export default function ModelLoader(callback) {
 	
-	const modelPath = {
-		letters: './static/models/letters-2-low/',
-		characters: './static/models/characters/',
-		buildings: './static/models/buildings/',
-		trees: './static/models/trees-2/',
+	const models = {
+		letters: {
+			path: './static/models/letters-2-low/',
+			str: 'abcdefghijklmnopqrstuvwxyz',
+			filename: '',
+		},
+		characters: {
+			path: './static/models/characters/',
+			str: 'ab',
+			filename: 'zo',
+		},
+		buildings: {
+			path: './static/models/buildings/',
+			str: 'abcdefg',
+			filename: 'building-',
+		},
+		trees: {
+			path: './static/models/trees-2/',
+			str: 'abcdef',
+			filename: 'tree-',
+		},
+		grass: {
+			path: './static/models/grass/',
+			str: 'abcdefg',
+			filename: 'grass-',
+		},
 	};
-	const models = { letters: {}, characters: {}, buildings: {}, trees: {} };
+
 	const manager = new THREE.LoadingManager();
 	const loader = new GLTFLoader(manager);
-
+	
 	manager.onLoad = () => {
 		console.timeEnd('models loaded');
 		callback();
 	};
-
 	console.time('models loaded');
 
-	'abcdefghijklmnopqrstuvwxyz'.split('').forEach(letter => {
-		loader.load(`${modelPath.letters}${letter}.glb`, gltf => {
-			models.letters[letter] = gltf;
-		});
-	});
+	Object.keys(models).forEach(key => {
+		const { str, path, filename } = models[key];
+		models[key].gltfs = {}; 
 
-	'ab'.split('').forEach(letter => {
-		loader.load(`${modelPath.characters}zo${letter}.glb`, gltf => {
-			models.characters[letter] = gltf;
-		});
+		str.split('').forEach(letter => {
+			loader.load(`${path}${filename}${letter}.glb`, gltf => {
+				models[key].gltfs[letter] = gltf;
+			})
+		})
 	});
-
-	'abcdefg'.split('').forEach(letter => {
-		loader.load(`${modelPath.buildings}building-${letter}.glb`, gltf => {
-			models.buildings[letter] = gltf;
-		});
-	});
-
-	'abcdef'.split('').forEach(letter => {
-		loader.load(`${modelPath.trees}tree-${letter}.glb`, gltf => {
-			models.trees[letter] = gltf;
-		});
-	});
-
 
 	this.getModel = function(type, key) {
-		return models[type][key].scene.clone();
+		return models[type].gltfs[key].scene.clone();
 	};
 
 	this.getGLTF = function(type, key) {
-		return cloneGltf(models[type][key]);
+		return cloneGltf(models[type].gltfs[key]);
 	};
 
 }
