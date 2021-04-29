@@ -13,14 +13,19 @@ export default function addScenery(scene, modelLoader, ground) {
 
 	function loadGrass() {
 
+		const texture = new THREE.TextureLoader().load( './static/textures/grass.png' );
+		texture.wrapS = THREE.RepeatWrapping;
+		texture.wrapT = THREE.RepeatWrapping;
+		texture.repeat.set( 16, 16 );
+
 		const grassMaterial = getToonMaterial({
 			color: 0x6db390,
-			// emissiveColor: 0x1e00ff,
+			map: texture,
 		});
 
 		const flowerMaterial = getToonMaterial({
 			color: 0xbfa8e0,
-			// emissiveColor: 0x1e00ff,
+			map: texture,
 		});
 
 		const dummy = new THREE.Object3D();

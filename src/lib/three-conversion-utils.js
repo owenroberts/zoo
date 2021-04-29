@@ -88,11 +88,31 @@ export function shapeToGeometry(shape, { flatShading = false } = {}) {
             )
             const i = geometry.vertices.length - 3
             geometry.faces.push(new THREE.Face3(i, i + 1, i + 2))
+
           }
         }
       }
+      
+      geometry.computeBoundingBox();
 
-      geometry.computeBoundingSphere()
+      const max = geometry.boundingBox.max,
+          min = geometry.boundingBox.min;
+      const offset = new THREE.Vector2(0 - min.x, 0 - min.y);
+      const range = new THREE.Vector2(max.x - min.x, max.y - min.y);
+      const faces = geometry.faces;
+      geometry.faceVertexUvs[0] = [];
+
+      for (let i = 0; i < faces.length ; i++) {
+          const _v1 = geometry.vertices[faces[i].a], 
+              _v2 = geometry.vertices[faces[i].b], 
+              _v3 = geometry.vertices[faces[i].c];
+
+          geometry.faceVertexUvs[0].push([
+              new THREE.Vector2((_v1.x + offset.x)/range.x ,(_v1.y + offset.y)/range.y),
+              new THREE.Vector2((_v2.x + offset.x)/range.x ,(_v2.y + offset.y)/range.y),
+              new THREE.Vector2((_v3.x + offset.x)/range.x ,(_v3.y + offset.y)/range.y)
+          ]);
+      }
 
       if (flatShading) {
         geometry.computeFaceNormals()
@@ -151,7 +171,7 @@ export function bodyToMesh(body, material) {
 
   const meshes = body.shapes.map((shape) => {
     const geometry = shapeToGeometry(shape)
-
+    geometry.uvsNeedUpdate = true;
     return new THREE.Mesh(geometry, material)
   })
 

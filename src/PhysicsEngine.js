@@ -10,7 +10,7 @@ import Wall from './Wall';
 import Ground from './Ground';
 import getToonMaterial from './ToonMaterial';
 import { choice } from './Cool';
-// import Ground from './GroundFlat';
+import { bodyToMesh } from './lib/three-conversion-utils.js';
 
 export default function Physics(scene, ground, hexMap, sideLength, models) {
 
@@ -20,6 +20,18 @@ export default function Physics(scene, ground, hexMap, sideLength, models) {
 	const dt = 1 / 60;
 	let lastTime = performance.now();
 	const wallBodies = []; // dont need this if walls dont move
+
+	const sphereShape = new CANNON.Sphere(2);
+	const physicsMaterial = new CANNON.Material();
+	const body = new CANNON.Body({ mass: 5 });
+
+	let material = getToonMaterial({ color: 0xff00ff });
+
+	const mesh = bodyToMesh(body, material);
+	scene.add(mesh);
+
+	body.position.set(0, 10, 0);
+	mesh.position.copy(body);
 
 	function setupWorld() {
 

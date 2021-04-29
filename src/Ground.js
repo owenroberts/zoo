@@ -5,7 +5,7 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { bodyToMesh } from './lib/three-conversion-utils.js';
-import { random, map } from './Cool';
+import { choice, random, map } from './Cool';
 // import Noise from './lib/perlin.js';
 
 export default function Ground() {
@@ -50,15 +50,22 @@ export default function Ground() {
 		((sizeZ - 1) * heightfieldShape.elementSize) / 2,
 	);
 
-	const groundMat = new THREE.MeshLambertMaterial({ 
+	const texture = new THREE.TextureLoader().load(`./static/textures/ground-${choice(1,2,3,4,5)}.png`);
+	texture.wrapS = THREE.RepeatWrapping;
+	texture.wrapT = THREE.RepeatWrapping;
+	texture.repeat.set( 128, 128 );
+	texture.anisotropy = 16;
+	texture.encoding = THREE.sRGBEncoding;
+
+	const groundMat = new THREE.MeshPhongMaterial({ 
 		color: 0xffffff,
+		map: texture,
 	});
 	groundMat.color.setHSL( 0.095, 1, 0.75 );
 
 	this.mesh = bodyToMesh(this.body, groundMat);
 	this.mesh.traverse(child => {
 		if (child.constructor.name == 'Mesh') {
-			// child.castShadow = true;
 			child.receiveShadow = true;
 		}
 	});
