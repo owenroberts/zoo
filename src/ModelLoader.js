@@ -31,7 +31,7 @@ export default function ModelLoader(callback) {
 		},
 		grass: {
 			path: './static/models/grass/',
-			str: 'abcdefg',
+			str: 'abcdefgh',
 			filename: 'grass-',
 		},
 	};
@@ -51,6 +51,7 @@ export default function ModelLoader(callback) {
 
 		str.split('').forEach(letter => {
 			loader.load(`${path}${filename}${letter}.glb`, gltf => {
+				if (key == 'grass' && letter == 'h') console.log(gltf)
 				models[key].gltfs[letter] = gltf;
 			})
 		})

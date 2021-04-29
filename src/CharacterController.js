@@ -7,7 +7,7 @@ import { choice, random } from './Cool';
 
 function CharacterController(scene, physics, modelLoader, input, position) {
 	
-	let debug = true;
+	let debug = false;
 	if (!input.isAI) {
 		this.isPlayer = true;
 		this.isTalking = false;

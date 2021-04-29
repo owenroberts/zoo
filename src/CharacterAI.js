@@ -14,8 +14,8 @@ export default function CharacterAI(input, controller, dialog, debug) {
 	// params for different types/species ?
 	const flockRadius = 10;
 	const alignLevel = choice(1, 2, 3);
-	const centerLevel = choice(1, 1, 2); 
-	const seperationLevel = choice(1, 2, 2, 3);
+	const centerLevel = choice(0, 1, 1, 2); 
+	const seperationLevel = choice(0, 1, 2, 2, 3);
 
 	const normalQuaternion = new THREE.Quaternion();
 	

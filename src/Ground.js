@@ -64,6 +64,7 @@ export default function Ground() {
 	});
 
 	this.mesh.updateWorldMatrix();
+	this.mesh.children[0].geometry.computeFaceNormals();
 
 	const verts = this.mesh.children[0].geometry.vertices.map(_v => {
 		const v = _v.clone();
@@ -81,5 +82,14 @@ export default function Ground() {
 			}
 		}
 		return closestVert.y;
+	};
+
+	const groundRaycaster = new THREE.Raycaster();
+	const groundRay = new THREE.Vector3(0, -1, 0);
+
+	this.getHeight = function(x, z) {
+		groundRaycaster.set(new THREE.Vector3(x, 10, z), groundRay.clone());
+		const intersects = groundRaycaster.intersectObjects([this.mesh.children[0]]);
+		return intersects[0];
 	};
 }

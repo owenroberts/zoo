@@ -69,7 +69,7 @@ function init() {
 	
 	physics = new Physics(scene, ground, hexMap, sideLength, modelLoader);
 
-	addScenery(scene, modelLoader, ground);
+	
 
 	playerInput = new CharacterControllerInput();
 	playerController = new CharacterController(scene, physics, modelLoader, playerInput, [3, 8, 3]);
@@ -82,7 +82,9 @@ function init() {
 	// controls.enableZoom = false;
 
 	ais = new AI(20, hexMap, sideLength, scene, physics, modelLoader);
-	
+
+	renderer.render(scene, camera); // rendering makes ray cast work ??
+	addScenery(scene, modelLoader, ground);
 }
 
 let previousRAF = null;
