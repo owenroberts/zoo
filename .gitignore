@@ -2,7 +2,9 @@ node_modules
 .DS_Store
 src/ex/
 blenders/
+originals/
 static/test_models/
+static/textures/
 dev.txt
 notes.txt
 doc/

@@ -16,6 +16,9 @@ export default function Ground() {
 	const sizeX = 16;
 	const sizeZ = sizeX;
 	const matrix = [];
+
+	const groundTexturePath = `./static/textures/pixels/ground-${choice(1,2,3,4,5)}.png`;
+
 	// const noise = new Noise();
 	// noise.seed(Math.random());
 	for (let i = 0; i < sizeX; i++) {
@@ -50,7 +53,7 @@ export default function Ground() {
 		((sizeZ - 1) * heightfieldShape.elementSize) / 2,
 	);
 
-	const texture = new THREE.TextureLoader().load(`./static/textures/ground-${choice(1,2,3,4,5)}.png`);
+	const texture = new THREE.TextureLoader().load(groundTexturePath);
 	texture.wrapS = THREE.RepeatWrapping;
 	texture.wrapT = THREE.RepeatWrapping;
 	texture.repeat.set( 128, 128 );

@@ -10,6 +10,7 @@ import { choice, random, chance, map, distance } from './Cool';
 export default function setupScene(modelLoader) {
 
 	const scene = new THREE.Scene();
+	const buildingTexturePath = `./static/textures/pixels/building-${choice(1,2,3,4,5,6)}.png`;
 	
 	scene.background = new THREE.Color().setHSL( 0.6, 0, 1 );
 	scene.background = new THREE.Color( 0x000000 );
@@ -73,8 +74,7 @@ export default function setupScene(modelLoader) {
 	
 	function addBuildings() {
 		// add shadows -- https://discourse.threejs.org/t/shadow-for-instances/7947/10
-		const texture = new THREE.TextureLoader()
-			.load(`./static/textures/b${choice(1,2,3,4,5,6)}.png`);
+		const texture = new THREE.TextureLoader().load(buildingTexturePath);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set( 16, 16 );

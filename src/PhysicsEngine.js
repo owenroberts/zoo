@@ -14,6 +14,7 @@ import { bodyToMesh } from './lib/three-conversion-utils.js';
 
 export default function Physics(scene, ground, hexMap, sideLength, models) {
 
+	const letterTexturePath = `./static/textures/pixels/n${choice(1,2,3,4,5,6,7,8,9)}.png`;
 	const castList = []; // so character knows whens its on the ground -- raycast
 
 	const world = new CANNON.World();
@@ -24,14 +25,6 @@ export default function Physics(scene, ground, hexMap, sideLength, models) {
 	const sphereShape = new CANNON.Sphere(2);
 	const physicsMaterial = new CANNON.Material();
 	const body = new CANNON.Body({ mass: 5 });
-
-	let material = getToonMaterial({ color: 0xff00ff });
-
-	const mesh = bodyToMesh(body, material);
-	scene.add(mesh);
-
-	body.position.set(0, 10, 0);
-	mesh.position.copy(body);
 
 	function setupWorld() {
 
@@ -69,8 +62,7 @@ export default function Physics(scene, ground, hexMap, sideLength, models) {
 
 		const alphabet = 'abcdefghijklmnopqrstuvwxyz';
 		const meshes = {};
-		const texture = new THREE.TextureLoader()
-			.load(`./static/textures/n${choice(1,2,3,4,5,6,7,8,9)}.png`);
+		const texture = new THREE.TextureLoader().load(letterTexturePath);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set( 8, 8 );

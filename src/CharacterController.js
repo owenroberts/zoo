@@ -17,6 +17,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 	let body, debugMesh, axesHelper;
 	let radius;
 
+	const texturePath = `./static/textures/pixels/character-${choice(1,2,3,4,5)}.png`;
 	const container = new THREE.Group();
 
 	const animations = {};
@@ -42,7 +43,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 	function init() {
 		scene.add(container);
 
-		const texture = new THREE.TextureLoader().load(`./static/textures/g${choice(1,2,3,4,5)}.png`);
+		const texture = new THREE.TextureLoader().load(texturePath);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set( 16, 16 );

@@ -11,9 +11,12 @@ export default function addScenery(scene, modelLoader, ground) {
 	let grassLoaded = false;
 	let grassMeshes = {};
 
+	const treeTexturePath = './static/textures/pixels/tree.png';
+	const grassTexturePath = './static/textures/pixels/grass.png';
+
 	function loadGrass() {
 
-		const texture = new THREE.TextureLoader().load( './static/textures/grass.png' );
+		const texture = new THREE.TextureLoader().load(grassTexturePath);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set( 16, 16 );
@@ -30,9 +33,13 @@ export default function addScenery(scene, modelLoader, ground) {
 
 		const dummy = new THREE.Object3D();
 
-		'abcdef'.split('').forEach(letter => {
+		'abcdefgh'.split('').forEach(letter => {
 			const model = modelLoader.getGLTF('grass', letter);
-			const grass = model.scene.children[0].geometry;
+			const hasFlower = 'gh'.includes(letter);
+			const grass = hasFlower ? 
+				model.scene.children[0].children[0].geometry:
+				model.scene.children[0].geometry;
+			
 			const grassMesh = new THREE.InstancedMesh(grass, grassMaterial, 512);
 			grassMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 			grassMesh.castShadow = true;
@@ -41,36 +48,22 @@ export default function addScenery(scene, modelLoader, ground) {
 				grassCount: 0,
 			};
 			scene.add(grassMeshes[letter].grass);
+
+			if (hasFlower) {
+				const flower = model.scene.children[0].children[1].geometry;
+				const flowerMesh = new THREE.InstancedMesh(flower, flowerMaterial, 512);
+				flowerMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+				flowerMesh.castShadow = true;
+				grassMeshes[letter].flower = flowerMesh;
+				grassMeshes[letter].flowerCount = 0;
+				scene.add(grassMeshes[letter].flower);
+			}
 		});
 
-		'gh'.split('').forEach(letter => {
-			const model = modelLoader.getGLTF('grass', letter);
-			const grass = model.scene.children[0].children[0].geometry;
-			const flower = model.scene.children[0].children[1].geometry;
-
-			const grassMesh = new THREE.InstancedMesh(grass, grassMaterial, 512);
-			const flowerMesh = new THREE.InstancedMesh(flower, flowerMaterial, 512);
-
-			grassMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-			grassMesh.castShadow = true;
-
-			flowerMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-			flowerMesh.castShadow = true;
-
-			grassMeshes[letter] = {
-				grass: grassMesh,
-				flower: flowerMesh,
-				grassCount: 0,
-				flowerCount: 0,
-			};
-
-			scene.add(grassMeshes[letter].grass);
-			scene.add(grassMeshes[letter].flower);
-		});
 	}
 
 	function addTrees() {
-		const texture = new THREE.TextureLoader().load( './static/textures/tree.png' );
+		const texture = new THREE.TextureLoader().load(treeTexturePath);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set( 16, 16 );
