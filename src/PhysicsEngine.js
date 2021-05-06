@@ -2,6 +2,7 @@
 	all physics related stuff
 */
 
+import C from './Constants';
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import PhysicsObject from './PhysicsObject';
@@ -12,9 +13,8 @@ import getToonMaterial from './ToonMaterial';
 import { choice } from './Cool';
 import { bodyToMesh } from './lib/three-conversion-utils.js';
 
-export default function Physics(scene, ground, hexMap, sideLength, models) {
+export default function Physics(scene, ground, hexMap, models) {
 
-	const letterTexturePath = `./static/textures/pixels/n${choice(1,2,3,4,5,6,7,8,9)}.png`;
 	const castList = []; // so character knows whens its on the ground -- raycast
 
 	const world = new CANNON.World();
@@ -60,17 +60,16 @@ export default function Physics(scene, ground, hexMap, sideLength, models) {
 
 	function setupWalls() {
 
-		const alphabet = 'abcdefghijklmnopqrstuvwxyz';
 		const meshes = {};
-		const texture = new THREE.TextureLoader().load(letterTexturePath);
+		const texture = new THREE.TextureLoader().load(C.letterTexturePath);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
-		texture.repeat.set( 8, 8 );
+		texture.repeat.set( 4, 4 );
 		const material = getToonMaterial({
 			color: 0x6f6c82,
 			map: texture,
 		});
-		alphabet.split('').forEach(letter => {
+		C.alphabet.split('').forEach(letter => {
 			const model = models.getGLTF('letters', letter);
 			const geo = model.scene.children[0].geometry;
 			const mesh = new THREE.InstancedMesh(geo, material, 512);
@@ -83,9 +82,9 @@ export default function Physics(scene, ground, hexMap, sideLength, models) {
 			
 		});
 
-		const walls = hexMap.getWalls(sideLength);
+		const walls = hexMap.getWalls(C.sideLength);
 		walls.forEach(params => {
-			const wall = new Wall(params, sideLength, meshes, ground, false);
+			const wall = new Wall(params, C.sideLength, meshes, ground, false);
 			scene.add(wall.container);
 			world.addBody(wall.body);
 			addToCastList(wall.container);

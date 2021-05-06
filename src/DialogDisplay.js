@@ -2,7 +2,7 @@
 	display dialog
 */
 
-export default function Dialog(w, h) {
+export default function DialogDisplay(w, h) {
 
 	// lines used to render dialog -- maybe just use text -- cool css animations??
 	const lines = new Game({

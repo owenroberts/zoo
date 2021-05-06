@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { bodyToMesh } from './lib/three-conversion-utils.js';
 import { choice, random, map } from './Cool';
+import C from './Constants';
 // import Noise from './lib/perlin.js';
 
 export default function Ground() {
@@ -17,7 +18,6 @@ export default function Ground() {
 	const sizeZ = sizeX;
 	const matrix = [];
 
-	const groundTexturePath = `./static/textures/pixels/ground-${choice(1,2,3,4,5)}.png`;
 
 	// const noise = new Noise();
 	// noise.seed(Math.random());
@@ -53,7 +53,7 @@ export default function Ground() {
 		((sizeZ - 1) * heightfieldShape.elementSize) / 2,
 	);
 
-	const texture = new THREE.TextureLoader().load(groundTexturePath);
+	const texture = new THREE.TextureLoader().load(C.groundTexturePath);
 	texture.wrapS = THREE.RepeatWrapping;
 	texture.wrapT = THREE.RepeatWrapping;
 	texture.repeat.set( 128, 128 );

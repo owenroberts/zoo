@@ -5,18 +5,16 @@
 import * as THREE from 'three';
 import getToonMaterial from './ToonMaterial';
 import { choice, random, chance, map, distance } from './Cool';
+import C from './Constants';
 
 export default function addScenery(scene, modelLoader, ground) {
 
 	let grassLoaded = false;
 	let grassMeshes = {};
 
-	const treeTexturePath = './static/textures/pixels/tree.png';
-	const grassTexturePath = './static/textures/pixels/grass.png';
-
 	function loadGrass() {
 
-		const texture = new THREE.TextureLoader().load(grassTexturePath);
+		const texture = new THREE.TextureLoader().load(C.grassTexturePath);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set( 16, 16 );
@@ -59,11 +57,10 @@ export default function addScenery(scene, modelLoader, ground) {
 				scene.add(grassMeshes[letter].flower);
 			}
 		});
-
 	}
 
 	function addTrees() {
-		const texture = new THREE.TextureLoader().load(treeTexturePath);
+		const texture = new THREE.TextureLoader().load(C.treeTexturePath);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set( 16, 16 );
@@ -174,7 +171,6 @@ export default function addScenery(scene, modelLoader, ground) {
 				}
 			}
 		}
-
 	}
 
 	addTrees();

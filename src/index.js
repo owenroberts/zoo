@@ -12,15 +12,16 @@ import Ground from './Ground';
 import setupScene from './SceneSetup';
 import addScenery from './Scenery';
 import HexMap from './HexMap';
-import Dialog from './Dialog';
+import DialogDisplay from './DialogDisplay';
 import AI from './AI';
 import VoiceSynth from './AIVoiceSynth';
+
+import C from './Constants';
 
 // three.js variables
 let camera, scene, renderer, stats, dpr;
 let w = window.innerWidth, h = window.innerHeight;
 let controls;
-let sideLength = 16;
 // const cameraOffset = new THREE.Vector3(-120, 60, -120); // distant view for testing
 const cameraOffset = new THREE.Vector3(-6, 6, -8);
 let thirdPersonCamera;
@@ -33,7 +34,7 @@ const modelLoader = new ModelLoader(() => {
 });
 
 let ais;
-let dialog = new Dialog(w, h);
+let dialogDisplay = new DialogDisplay(w, h);
 let voiceSynth = new VoiceSynth();
 
 function init() {
@@ -62,15 +63,13 @@ function init() {
 
 // setup
 
-	const hexMap = new HexMap(3, true);
+	const hexMap = new HexMap(C.hexRings, true);
 	
 	const ground = new Ground();
 	scene.add(ground.mesh);
 	
-	physics = new Physics(scene, ground, hexMap, sideLength, modelLoader);
-
+	physics = new Physics(scene, ground, hexMap, modelLoader);
 	
-
 	playerInput = new CharacterControllerInput();
 	playerController = new CharacterController(scene, physics, modelLoader, playerInput, [3, 8, 3]);
 	// thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
@@ -81,7 +80,7 @@ function init() {
 	// controls.maxDistance = 50;
 	// controls.enableZoom = false;
 
-	ais = new AI(20, hexMap, sideLength, scene, physics, modelLoader);
+	ais = new AI(hexMap, scene, physics, modelLoader);
 
 	renderer.render(scene, camera); // rendering makes ray cast work ??
 	addScenery(scene, modelLoader, ground);
@@ -96,7 +95,7 @@ function animate() {
 		const timeElapsed = t - previousRAF;
 		if (playerController) playerController.update(timeElapsed);
 		if (playerController.isTalking) {
-			if (!dialog.isActive()) playerController.isTalking = false; 
+			if (!dialogDisplay.isActive()) playerController.isTalking = false; 
 		}
 		const aiProps = ais.update(timeElapsed, playerController.getProps());
 		playerInput.sniff = playerController.sniffCheck(aiProps);
@@ -121,9 +120,10 @@ function onWindowResize() {
 // message events
 window.addEventListener("message", (event) => {
 	if (event.data.aiMessage) {
-		dialog.setMessage(event.data.aiMessage);
+		dialogDisplay.setMessage(event.data.aiMessage);
 		voiceSynth.speak(event.data.aiMessage);
 		playerController.isTalking = true;
+		console.log('isTalking?', playerController);
 	}
 
 	if (event.data.testAxes) {

@@ -4,6 +4,10 @@
 
 import { choice, random, chance } from './Cool';
 
+// voices to exclude (the singy ones) -- or ones that just read letters
+const exclude = ['Princess', 'Cellos'];
+
+
 export default function VoiceSynth() {
 	const voiceSynth = window.speechSynthesis;
 	let voices;
@@ -23,7 +27,9 @@ export default function VoiceSynth() {
 			return vowels.includes(l) ? l : choice(...consonants);
 		}).join('');
 		const utterance = new SpeechSynthesisUtterance(m);
-		utterance.voice = choice(...voices);
+		const voice = choice(...voices);
+		console.log(voice);
+		utterance.voice = voice;
 		voiceSynth.speak(utterance);
 	};
 }

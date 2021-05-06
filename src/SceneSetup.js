@@ -6,15 +6,14 @@ import * as THREE from 'three';
 import { Sky } from 'three/examples/jsm/objects/Sky';
 import getToonMaterial from './ToonMaterial';
 import { choice, random, chance, map, distance } from './Cool';
+import C from './Constants';
 
 export default function setupScene(modelLoader) {
 
 	const scene = new THREE.Scene();
-	const buildingTexturePath = `./static/textures/pixels/building-${choice(1,2,3,4,5,6)}.png`;
-	
 	scene.background = new THREE.Color().setHSL( 0.6, 0, 1 );
 	scene.background = new THREE.Color( 0x000000 );
-	scene.fog = new THREE.Fog( scene.background, 1, 1000 );
+	scene.fog = new THREE.Fog( scene.background, 1, 600 );
 	scene.fog.color.setHSL( 0.095, 0.4, 0.3 );
 
 	function addLighting() {
@@ -74,7 +73,7 @@ export default function setupScene(modelLoader) {
 	
 	function addBuildings() {
 		// add shadows -- https://discourse.threejs.org/t/shadow-for-instances/7947/10
-		const texture = new THREE.TextureLoader().load(buildingTexturePath);
+		const texture = new THREE.TextureLoader().load(C.buildingTexturePath);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set( 16, 16 );
@@ -82,7 +81,8 @@ export default function setupScene(modelLoader) {
 		const buildingMaterial = getToonMaterial({
 			color: 0xb6d1fc,
 			map: texture,
-			// emissiveColor: 0x1e00ff,
+			// combine: THREE.MultiplyOperation,
+			// emissiveColor: 0x222222,
 		});
 		const dummy = new THREE.Object3D();
 		const buildingMeshes = {};
@@ -100,17 +100,20 @@ export default function setupScene(modelLoader) {
 			scene.add(buildingMeshes[letter].mesh);
 		});
 
-		// ground 256 x 256
-		for (let i = 0; i < 2; i++) {
-			let z = -120 + -32 * i;
+		const startRow = -C.sceneWidth / 2;
+		const rowDepth = -C.buildingSize / 2;
+		const rowWidth = C.sceneWidth - C.buildingSize / 2;
+		for (let i = 0; i < C.buildingRows; i++) {
+			let z = startRow + rowDepth * i;
+			// four quadrants
 			for (let j = 0; j < 4; j++) {
-				const r = [Math.PI, 0, -Math.PI/2, Math.PI/2][j];
+				const r = [Math.PI, 0, -Math.PI / 2, Math.PI / 2][j];
 				z *= j % 1 == 0 ? -1 : 1;
 
-				for (let x = 24; x < (256 - 24); x += 12) {
-					let _x = j > 1 ? z + 128 : x;
-					let _z = j > 1 ? x - 128: z;
-					dummy.position.set(_x - 128, 3, _z);
+				for (let x = C.buildingSize / 4; x < rowWidth; x += C.buildingSize / 2) {
+					let _x = j > 1 ? z + C.sceneWidth / 2 : x;
+					let _z = j > 1 ? x - C.sceneWidth / 2 : z;
+					dummy.position.set(_x - C.sceneWidth / 2, C.buildingY, _z);
 					dummy.rotation.y = r;
 					dummy.updateMatrix();
 					const letter = choice(...Object.keys(buildingMeshes));

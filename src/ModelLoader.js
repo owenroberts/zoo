@@ -5,37 +5,11 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import cloneGltf from './lib/three-clone-gltf.js';
+import C from './Constants';
 
 export default function ModelLoader(callback) {
 	
-	const models = {
-		letters: {
-			path: './static/models/letters-2-low/',
-			str: 'abcdefghijklmnopqrstuvwxyz',
-			filename: '',
-		},
-		characters: {
-			path: './static/models/characters/',
-			str: 'ab',
-			filename: 'zo',
-		},
-		buildings: {
-			path: './static/models/buildings/',
-			str: 'abcdefg',
-			filename: 'building-',
-		},
-		trees: {
-			path: './static/models/trees-2/',
-			str: 'abcdef',
-			filename: 'tree-',
-		},
-		grass: {
-			path: './static/models/grass/',
-			str: 'abcdefgh',
-			filename: 'grass-',
-		},
-	};
-
+	const models = C.models;
 	const manager = new THREE.LoadingManager();
 	const loader = new GLTFLoader(manager);
 	
@@ -45,8 +19,8 @@ export default function ModelLoader(callback) {
 	};
 	console.time('models loaded');
 
-	Object.keys(models).forEach(key => {
-		const { str, path, filename } = models[key];
+	Object.keys(C.models).forEach(key => {
+		const { str, path, filename } = C.models[key];
 		models[key].gltfs = {}; 
 
 		str.split('').forEach(letter => {
