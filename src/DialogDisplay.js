@@ -13,11 +13,18 @@ export default function DialogDisplay(w, h) {
 		lineWidth: 2,
 	});
 
+
 	lines.load({
 		text: 'static/drawings/data.json'
 	});
 
 	let dialog;
+	let status = 'none';
+	let doesEnd = true;
+
+	this.setDoesEnd = function(value) {
+		doesEnd = value;
+	};
 
 	window.start = function() {
 		let indexString = "abcdefghijklmnopqrstuvwxyz.?',";
@@ -26,16 +33,15 @@ export default function DialogDisplay(w, h) {
 
 	// uses its own draw update -- combine with animate -- maybe better to have separate
 	window.draw = function() {
-		let isFinished = dialog.display(true, true);
-		if (isFinished && dialog.isActive) dialog.isActive = false;
+		status = dialog.display(true, true, doesEnd);
 	};
 
 	this.setMessage = function(message) {
 		dialog.setMsg(message);
-		dialog.isActive = true;
+		status = 'none';
 	};
 
-	this.isActive = function() {
-		return dialog.isActive;
+	this.getStatus = function() {
+		return status;
 	};
 }

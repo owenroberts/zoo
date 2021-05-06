@@ -26,6 +26,7 @@ export default function VoiceSynth() {
 		const m = message.split('').map(l => {
 			return vowels.includes(l) ? l : choice(...consonants);
 		}).join('');
+		console.log(m);
 		const utterance = new SpeechSynthesisUtterance(m);
 		const voice = choice(...voices);
 		console.log(voice);

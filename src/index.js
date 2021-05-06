@@ -28,14 +28,17 @@ let thirdPersonCamera;
 let physics;
 let playerInput, playerController;
 
+let ais;
+let dialogDisplay = new DialogDisplay(w, h);
+let voiceSynth = new VoiceSynth();
+let onBoardingCount = 0;
+
+
 const modelLoader = new ModelLoader(() => {
 	init();
 	animate();
 });
 
-let ais;
-let dialogDisplay = new DialogDisplay(w, h);
-let voiceSynth = new VoiceSynth();
 
 function init() {
 	
@@ -80,7 +83,7 @@ function init() {
 	// controls.maxDistance = 50;
 	// controls.enableZoom = false;
 
-	ais = new AI(hexMap, scene, physics, modelLoader);
+	// ais = new AI(hexMap, scene, physics, modelLoader);
 
 	renderer.render(scene, camera); // rendering makes ray cast work ??
 	addScenery(scene, modelLoader, ground);
@@ -93,12 +96,25 @@ function animate() {
 		animate();
 		renderer.render(scene, camera);
 		const timeElapsed = t - previousRAF;
+		
 		if (playerController) playerController.update(timeElapsed);
 		if (playerController.isTalking) {
-			if (!dialogDisplay.isActive()) playerController.isTalking = false; 
+			if (dialogDisplay.getStatus() == 'ended') playerController.isTalking = false; 
 		}
-		const aiProps = ais.update(timeElapsed, playerController.getProps());
-		playerInput.sniff = playerController.sniffCheck(aiProps);
+
+		if (dialogDisplay) {
+			if (onBoardingCount < C.onBoarding.length) {
+				if (dialogDisplay.getStatus() == 'ended') {
+					dialogDisplay.setMessage(C.onBoarding[onBoardingCount]);
+					dialogDisplay.setDoesEnd(false);
+				}
+			}
+		}
+		
+		if (ais) {
+			const aiProps = ais.update(timeElapsed, playerController.getProps());
+			playerInput.sniff = playerController.sniffCheck(aiProps);
+		}
 
 		physics.update(timeElapsed);
 		controls.update();
@@ -142,7 +158,22 @@ document.addEventListener('keydown', ev => {
 	if (ev.key == 'r') {
 		// reset camera zoom
 		controls.reset(); // adjust to also reset position ... 
-		console.log(controls);
-		
+		// console.log(controls);
+	}
+
+	if (ev.key == 'x' && 
+		onBoardingCount <= C.onBoarding.length && 
+		dialogDisplay.getStatus() == 'message') {
+		// start with sound
+		onBoardingCount++;
+		dialogDisplay.setDoesEnd(true);
+		// if (onBoardingCount == 2) playerInput.setReady();
+		if (onBoardingCount == C.onBoarding.length) dialogDisplay.setMessage('');
+	}
+
+	if (ev.key == 'z' && onBoardingCount == 0) {
+		// start without sound
+		onBoardingCount++;
+		dialogDisplay.setDoesEnd(true);
 	}
 });

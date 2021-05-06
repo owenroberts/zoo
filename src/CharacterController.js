@@ -12,6 +12,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		this.isPlayer = true;
 		this.isTalking = false;
 	}
+	this.doneOnboarding = input.isAI;
 
 	let mesh, mixer, stateMachine;
 	let body, debugMesh, axesHelper;
@@ -242,7 +243,6 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		if (!mesh || !body) return;
 		const timeInSeconds = timeElapsed * 0.001;
 		
-		// if (input.talk) console.log(input.talk, input.forward, input.left, input.right);
 		applyVelocity(timeElapsed, timeInSeconds);
 		container.position.copy(body.position); // update mesh position
 

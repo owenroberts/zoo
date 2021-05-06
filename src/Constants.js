@@ -57,6 +57,17 @@ const constants = {
 			str: 'abcdefgh',
 			filename: 'grass-',
 		},
-	}
+	},
+
+	// onboarding commands
+	onBoarding: [
+		'hit x to begin with sound,\n z to begin without sound',
+		// 'click and drag the mouse to rotate the view, x to continue',
+		// 'use the wasd keys to move, x to continue',
+		// 'w is forward, s is backward, x to continue',
+		// 'a is left, d is right, x to continue',
+		// 'hold shift to run, x to continue',
+		'you have five minutes to get out of the zoo before you starve to death, x to begin',
+	],
 };
 export default constants;
