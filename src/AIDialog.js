@@ -11,7 +11,7 @@ const dialogs = [
 	"i'm scared to leave.",
 	"what happened?",
 	"i guess they weren't so bad, they brought us food.",
-	"i heard there is a secret door to the other animal area.",
+	"i heard there is a secret door to the zoobs area.",
 	"how far are we from the exit?",
 	"do you know where the exit is?",
 	"i remember the time when the angels were always watching us? we keep calling for them to return but i guess their ears are out of range to hear our calls.",

@@ -70,66 +70,8 @@ export default function setupScene(modelLoader) {
 		dirLight.shadow.camera.far = 3500;
 		dirLight.shadow.bias = - 0.0001;
 	}
-	
-	function addBuildings() {
-		// add shadows -- https://discourse.threejs.org/t/shadow-for-instances/7947/10
-		const texture = new THREE.TextureLoader().load(C.buildingTexturePath);
-		texture.wrapS = THREE.RepeatWrapping;
-		texture.wrapT = THREE.RepeatWrapping;
-		texture.repeat.set( 16, 16 );
-
-		const buildingMaterial = getToonMaterial({
-			color: 0xb6d1fc,
-			map: texture,
-			// combine: THREE.MultiplyOperation,
-			// emissiveColor: 0x222222,
-		});
-		const dummy = new THREE.Object3D();
-		const buildingMeshes = {};
-
-		'abcdefg'.split('').forEach(letter => {
-			const building = modelLoader.getGLTF('buildings', letter);
-			const geo = building.scene.children[0].geometry;
-			const mesh = new THREE.InstancedMesh(geo, buildingMaterial, 36);
-			mesh.instanceMatrix.setUsage( THREE.DynamicDrawUsage );
-			mesh.castShadow = true;
-			buildingMeshes[letter] = {
-				mesh: mesh,
-				count: 0,
-			};
-			scene.add(buildingMeshes[letter].mesh);
-		});
-
-		const startRow = -C.sceneWidth / 2;
-		const rowDepth = -C.buildingSize / 2;
-		const rowWidth = C.sceneWidth - C.buildingSize / 2;
-		for (let i = 0; i < C.buildingRows; i++) {
-			let z = startRow + rowDepth * i;
-			// four quadrants
-			for (let j = 0; j < 4; j++) {
-				const r = [Math.PI, 0, -Math.PI / 2, Math.PI / 2][j];
-				z *= j % 1 == 0 ? -1 : 1;
-
-				for (let x = C.buildingSize / 4; x < rowWidth; x += C.buildingSize / 2) {
-					let _x = j > 1 ? z + C.sceneWidth / 2 : x;
-					let _z = j > 1 ? x - C.sceneWidth / 2 : z;
-					dummy.position.set(_x - C.sceneWidth / 2, C.buildingY, _z);
-					dummy.rotation.y = r;
-					dummy.updateMatrix();
-					const letter = choice(...Object.keys(buildingMeshes));
-					buildingMeshes[letter].mesh.setMatrixAt(buildingMeshes[letter].count++, dummy.matrix);
-				}
-			}
-		}
-
-		for (const m in buildingMeshes) {
-			buildingMeshes[m].mesh.count = buildingMeshes[m].count;
-		}
-	}
 
 	addLighting();
-	addBuildings();
 	
 	return scene;
-
 }

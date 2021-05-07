@@ -79,7 +79,6 @@ export default function Physics(scene, ground, hexMap, models) {
 				mesh: mesh,
 				count: 0,
 			};
-			
 		});
 
 		const walls = hexMap.getWalls(C.sideLength);

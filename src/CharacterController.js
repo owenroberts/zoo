@@ -8,10 +8,10 @@ import C from './Constants';
 
 function CharacterController(scene, physics, modelLoader, input, position) {
 	
-	let debug = true;
+	let debug = false;
 	if (!input.isAI) {
 		this.isPlayer = true;
-		this.isTalking = false;
+		this.isTalking = true; // "talking" during onboarding
 	}
 	this.doneOnboarding = input.isAI;
 
@@ -70,11 +70,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 			if (c.constructor.name == 'SkinnedMesh') {
 				c.castShadow = true;
 				c.receiveShadow = true;
-				if (c.material.name == 'EyeMaterial') {
-					c.material = eyeMaterial;
-				} else {
-					c.material = material;
-				}
+				c.material = c.material.name == 'EyeMaterial' ? eyeMaterial : material;
 			}
 		});
 		container.add(mesh);
@@ -95,13 +91,13 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		const box = new THREE.Box3().setFromObject(mesh);
 
 		radius = (box.max.y - box.min.y) / 2;
-		radius *= 0.5; // smaller than char, skinny body -- kinda works
-		mesh.position.y -= radius * 1.1;
+		const colliderRadius = radius * 0.5; // smaller than char, skinny body -- kinda works
+		mesh.position.y -= colliderRadius * 1.1;
 
 		// mesh.rotation.y = -Math.PI * 0.66;
 		mesh.rotation.y = -Math.PI * 0.5;
 		
-		const sphereShape = new CANNON.Sphere(radius);
+		const sphereShape = new CANNON.Sphere(colliderRadius);
 		const physicsMaterial = new CANNON.Material('physics');
 		body = new CANNON.Body({ mass: 5, material: physicsMaterial });
 		body.friction = 0.9;
@@ -129,19 +125,19 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 
 		if (debug) {
 			const debugMaterial = new THREE.MeshBasicMaterial({ color: 0x22ffaa, wireframe: true });
-			debugMesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 8, 8), debugMaterial);
+			debugMesh = new THREE.Mesh(new THREE.SphereGeometry(colliderRadius, 8, 8), debugMaterial);
 			scene.add(debugMesh);
 
 			axesHelper = new THREE.AxesHelper( 1 );
 			scene.add( axesHelper );
 
-			// const buttPos = new THREE.AxesHelper(0.5);
-			// buttPos.position.set(0, 0, -radius);
-			// container.add(buttPos);
+			const buttPos = new THREE.AxesHelper(0.5);
+			buttPos.position.set(0, 0, -radius);
+			container.add(buttPos);
 
-			// const facePos = new THREE.AxesHelper(0.5);
-			// facePos.position.set(0, 0, radius + 0.5);
-			// container.add(facePos);
+			const facePos = new THREE.AxesHelper(0.5);
+			facePos.position.set(0, 0, radius + 0.5);
+			container.add(facePos);
 
 		}
 		

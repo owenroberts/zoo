@@ -32,7 +32,8 @@ let playerInput, playerController;
 let ais;
 let dialogDisplay = new DialogDisplay(w, h);
 let voiceSynth = new VoiceSynth();
-let onBoardingCount = 0;
+let onBoardingCount = 0, doOnBoarding = false;
+let doneOnboarding = !doOnBoarding;
 
 
 const modelLoader = new ModelLoader(() => {
@@ -80,6 +81,7 @@ function init() {
 // setup
 
 	const hexMap = new HexMap(C.hexRings, true);
+	console.log(hexMap.getHexes());
 	
 	const ground = new Ground();
 	scene.add(ground.mesh);
@@ -111,11 +113,14 @@ function animate() {
 		const timeElapsed = t - previousRAF;
 		
 		if (playerController) playerController.update(timeElapsed);
-		if (playerController.isTalking) {
-			if (dialogDisplay.getStatus() == 'ended') playerController.isTalking = false; 
+		if (playerController.isTalking && doneOnboarding) {
+			if (dialogDisplay.getStatus() == 'ended') {
+				playerController.isTalking = false; 
+				dialogDisplay.setMessage('');
+			}
 		}
 
-		if (dialogDisplay) {
+		if (dialogDisplay && doOnBoarding) {
 			if (onBoardingCount < C.onBoarding.length) {
 				if (dialogDisplay.getStatus() == 'ended') {
 					dialogDisplay.setMessage(C.onBoarding[onBoardingCount]);
@@ -174,7 +179,7 @@ document.addEventListener('keydown', ev => {
 		// console.log(controls);
 	}
 
-	if (ev.key == 'x' && 
+	if (ev.key == 'x' && doOnBoarding &&
 		onBoardingCount <= C.onBoarding.length && 
 		dialogDisplay.getStatus() == 'message') {
 		if (onBoardingCount == 0) initSound();
@@ -182,10 +187,14 @@ document.addEventListener('keydown', ev => {
 		onBoardingCount++;
 		dialogDisplay.setDoesEnd(true);
 		// if (onBoardingCount == 2) playerInput.setReady();
-		if (onBoardingCount == C.onBoarding.length) dialogDisplay.setMessage('');
+		if (onBoardingCount == C.onBoarding.length) {
+			dialogDisplay.setMessage('');
+			playerController.isTalking = false;
+			doneOnboarding = true;
+		}
 	}
 
-	if (ev.key == 'z' && onBoardingCount == 0) {
+	if (ev.key == 'z' && onBoardingCount == 0 && doOnBoarding) {
 		// start without sound
 		onBoardingCount++;
 		dialogDisplay.setDoesEnd(true);

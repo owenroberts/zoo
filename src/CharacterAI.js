@@ -58,10 +58,9 @@ export default function CharacterAI(input, controller, dialog, debug) {
 			talkedToPlayer = true;
 			input.killActions();
 			// turn to player ... 
-			let direction = directionTo(player.position);
+			const direction = directionTo(player.position);
 			const alignTime = Math.abs(direction) * 3;
 			input.addAction(direction > 0 ? 'right' : 'left', alignTime);
-			console.log('talk', dialog, dialog.length);
 			input.addAction('talk', dialog.length, alignTime + 1, () => {
 				window.postMessage({ aiMessage: dialog });
 			});
@@ -110,13 +109,12 @@ export default function CharacterAI(input, controller, dialog, debug) {
 			const dist = position.distanceTo(center);
 			if (dist > 2) input.addAction('forward', dist);
 		}
-
 	}
 
 	this.update = function(timeElapsed, others, canTalk) {
 		if (!input || !controller) return;
 
-		let returnTalkedToPlayer = false; // this is fuckin weird
+		let returnTalkedToPlayer = false; // prevent multiple talks in one update
 		
 		if (canTalk && !talkedToPlayer && !others[0].isTalking && !input.jump) {
 			returnTalkedToPlayer = true;
@@ -136,6 +134,7 @@ export default function CharacterAI(input, controller, dialog, debug) {
 
 		input.update(timeElapsed);
 		controller.update(timeElapsed);
+		
 		return returnTalkedToPlayer;
 	};
 
