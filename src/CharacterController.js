@@ -45,7 +45,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 	function init() {
 		scene.add(container);
 
-		const texture = new THREE.TextureLoader().load(C.characterTexturePath);
+		const texture = new THREE.TextureLoader().load(C.characterTexturePath());
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set( 16, 16 );

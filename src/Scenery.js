@@ -174,34 +174,8 @@ export default function addScenery(scene, modelLoader, ground) {
 	}
 
 	function addBuildings() {
-		// add shadows -- https://discourse.threejs.org/t/shadow-for-instances/7947/10
-		const texture = new THREE.TextureLoader().load(C.buildingTexturePath);
-		texture.wrapS = THREE.RepeatWrapping;
-		texture.wrapT = THREE.RepeatWrapping;
-		texture.repeat.set( 16, 16 );
 
-		const buildingMaterial = getToonMaterial({
-			color: 0xb6d1fc,
-			map: texture,
-			// combine: THREE.MultiplyOperation,
-			// emissiveColor: 0x222222,
-		});
 		const dummy = new THREE.Object3D();
-		const buildingMeshes = {};
-
-		'abcdefg'.split('').forEach(letter => {
-			const building = modelLoader.getGLTF('buildings', letter);
-			const geo = building.scene.children[0].geometry;
-			const mesh = new THREE.InstancedMesh(geo, buildingMaterial, 36);
-			mesh.instanceMatrix.setUsage( THREE.DynamicDrawUsage );
-			mesh.castShadow = true;
-			buildingMeshes[letter] = {
-				mesh: mesh,
-				count: 0,
-			};
-			scene.add(buildingMeshes[letter].mesh);
-		});
-
 		const startRow = -C.sceneWidth / 2;
 		const rowDepth = -C.buildingSize / 2;
 		const rowWidth = C.sceneWidth - C.buildingSize / 2;
@@ -218,17 +192,14 @@ export default function addScenery(scene, modelLoader, ground) {
 					dummy.position.set(_x - C.sceneWidth / 2, C.buildingY, _z);
 					dummy.rotation.y = r;
 					dummy.updateMatrix();
-					const letter = choice(...Object.keys(buildingMeshes));
-					buildingMeshes[letter].mesh.setMatrixAt(buildingMeshes[letter].count++, dummy.matrix);
+					modelLoader.addInstance(scene, 'buildings', 'random', dummy.matrix);
 				}
 			}
 		}
 
-		for (const m in buildingMeshes) {
-			buildingMeshes[m].mesh.count = buildingMeshes[m].count;
-		}
+		modelLoader.updateCount('buildings');
 	}
 
-	addTrees();
+	// addTrees();
 	addBuildings();
 }

@@ -23,8 +23,8 @@ import C from './Constants';
 let camera, scene, renderer, stats, dpr;
 let w = window.innerWidth, h = window.innerHeight;
 let controls;
-// const cameraOffset = new THREE.Vector3(-120, 60, -120); // distant view for testing
-const cameraOffset = new THREE.Vector3(-6, 6, -8);
+const cameraOffset = new THREE.Vector3(-120, 60, -120); // distant view for testing
+// const cameraOffset = new THREE.Vector3(-6, 6, -8);
 let thirdPersonCamera;
 let physics;
 let playerInput, playerController;

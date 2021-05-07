@@ -69,6 +69,7 @@ export default function Physics(scene, ground, hexMap, models) {
 			color: 0x6f6c82,
 			map: texture,
 		});
+		
 		C.alphabet.split('').forEach(letter => {
 			const model = models.getGLTF('letters', letter);
 			const geo = model.scene.children[0].geometry;
@@ -84,7 +85,7 @@ export default function Physics(scene, ground, hexMap, models) {
 		const walls = hexMap.getWalls(C.sideLength);
 		walls.forEach(params => {
 			const wall = new Wall(params, C.sideLength, meshes, ground, false);
-			scene.add(wall.container);
+			// scene.add(wall.container);
 			world.addBody(wall.body);
 			addToCastList(wall.container);
 			// scene.add(wall.bodyMesh); // debug
@@ -93,7 +94,7 @@ export default function Physics(scene, ground, hexMap, models) {
 		for (const m in meshes) {
 			meshes[m].mesh.count = meshes[m].count;
 			if (meshes[m].count > 0) {
-				scene.add(meshes[m].mesh);
+				// scene.add(meshes[m].mesh);
 				addToCastList(meshes[m].mesh);
 			}
 		}
