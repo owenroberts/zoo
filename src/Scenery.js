@@ -104,13 +104,13 @@ export default function addScenery(scene, modelLoader, ground) {
 			scene.add(meshes[letter].bottom);
 		});
 
-		let b = 112; // bound
+		let b = 96; // bound
 		let long = distance(0, 0, b, b);
 		let inside = distance(0, 0, b/2, b/2);
 		for (let x = -b; x < b; x += 8) {
 			for (let z = -b; z < b; z += 8) {
 				let d = distance(0, 0, x, z);
-				let pct = map(d, 0, long, 0, 0.2);
+				let pct = map(d, 0, long, 0, 0.35);
 				if (chance(pct)) {
 					const y = ground.getClosestVert(x, z);
 					dummy.position.set(x, y, z);
@@ -152,7 +152,7 @@ export default function addScenery(scene, modelLoader, ground) {
 		for (let x = -b; x < b; x += u) {
 			for (let z = -b; z < b; z += u) {
 				let d = distance(0, 0, x, z);
-				let pct = map(d, 0, long, 0.25, 0);
+				let pct = map(d, 0, long, 0.1	, 0);
 				if (chance(pct)) {
 					const { point, face } = ground.getHeight(_x + x, _z + z);
 					dummy.position.set(0, 0, 0);

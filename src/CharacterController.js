@@ -4,10 +4,11 @@ import { CharacterFSM } from './CharacterStates';
 import { CharacterControllerInput } from './CharacterControllerInput';
 import getToonMaterial from './ToonMaterial';
 import { choice, random } from './Cool';
+import C from './Constants';
 
 function CharacterController(scene, physics, modelLoader, input, position) {
 	
-	let debug = false;
+	let debug = true;
 	if (!input.isAI) {
 		this.isPlayer = true;
 		this.isTalking = false;
@@ -18,7 +19,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 	let body, debugMesh, axesHelper;
 	let radius;
 
-	const texturePath = `./static/textures/pixels/character-${choice(1,2,3,4,5)}.png`;
+	// const texturePath = 
 	const container = new THREE.Group();
 
 	const animations = {};
@@ -44,7 +45,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 	function init() {
 		scene.add(container);
 
-		const texture = new THREE.TextureLoader().load(texturePath);
+		const texture = new THREE.TextureLoader().load(C.characterTexturePath);
 		texture.wrapS = THREE.RepeatWrapping;
 		texture.wrapT = THREE.RepeatWrapping;
 		texture.repeat.set( 16, 16 );
@@ -94,7 +95,8 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		const box = new THREE.Box3().setFromObject(mesh);
 
 		radius = (box.max.y - box.min.y) / 2;
-		mesh.position.y -= radius;
+		radius *= 0.5; // smaller than char, skinny body -- kinda works
+		mesh.position.y -= radius * 1.1;
 
 		// mesh.rotation.y = -Math.PI * 0.66;
 		mesh.rotation.y = -Math.PI * 0.5;

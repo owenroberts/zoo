@@ -15,6 +15,7 @@ import HexMap from './HexMap';
 import DialogDisplay from './DialogDisplay';
 import AI from './AI';
 import VoiceSynth from './AIVoiceSynth';
+import Doodoo from '../doodoo/doodoo.js';
 
 import C from './Constants';
 
@@ -39,6 +40,18 @@ const modelLoader = new ModelLoader(() => {
 	animate();
 });
 
+
+function initSound() {
+	const tonic = 'C#5';
+	const part1 = [
+		['C#6', '2n'], ['D#6', '2n'], [null, '2n'], [null, '8n'], ['A#5', '8n'], ['G#5', '8n'], [null, '8n'],
+		['C#6', '2n'], ['D#6', '2n'], ['E6', '2n'], [null, '4n'], ['B5', '8n'], ['A5', '8n'],
+		['E6', '2n'], ['F#6', '2n'], ['G#6', '2n'], [null, '4n'], ['C#7', '8n'], ['D#7', '8n'], 
+		['C#7', '8n'], [null, '8n'], ['A#6', '4n'], ['G#6', '4n'], ['A#6', '8n'], ['G#6', '4n'], ['A#6', '8n'], ['G#6', '8n'], ['A#6', '8n'], ['G#6', '4n'], [null, '8n']
+	];
+	const doodoo = new Doodoo(tonic, [part1], '8n');
+	doodoo.setBPM(112);
+}
 
 function init() {
 	
@@ -164,6 +177,7 @@ document.addEventListener('keydown', ev => {
 	if (ev.key == 'x' && 
 		onBoardingCount <= C.onBoarding.length && 
 		dialogDisplay.getStatus() == 'message') {
+		if (onBoardingCount == 0) initSound();
 		// start with sound
 		onBoardingCount++;
 		dialogDisplay.setDoesEnd(true);

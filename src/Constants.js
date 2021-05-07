@@ -17,9 +17,8 @@ const constants = {
 	buildingRows: 2,
 	buildingY: 3,
 
-
 	// ai settings
-	aiNum: 20,
+	aiNum: 12,
 
 	// textures
 	// buildingTexturePath: `./static/textures/pixels/building-${choice(1,2,3,4,5,6)}.png`,
@@ -29,6 +28,7 @@ const constants = {
 	treeTexturePath: './static/textures/pixels/tree.png',
 	grassTexturePath: './static/textures/blur/grass.png',
 	groundTexturePath: `./static/textures/blur/ground-${choice(1,2,3,4,5)}.png`,
+	characterTexturePath: `./static/textures/pixels/character-${choice(1,2,3,4,5)}.png`,
 
 	// models
 	models: {
