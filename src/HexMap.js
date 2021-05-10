@@ -80,6 +80,7 @@ export default function HexMap(radius, isMaze) {
 
 	function getNeighbors(a) {
 		const neighbors = [];
+		// SE, NE, N, NW, SW, S
 		const directions = [
 			new Axial(a.x + 1, a.y), new Axial(a.x + 1, a.y - 1), new Axial(a.x, a.y - 1), 
       		new Axial(a.x - 1, a.y), new Axial(a.x - 1, a.y + 1), new Axial(a.x, a.y + 1), 
@@ -93,28 +94,42 @@ export default function HexMap(radius, isMaze) {
 		return neighbors;
 	}
 
+	function getDistance(a, b) {
+		return (Math.abs(a.x - b.x) 
+				+ Math.abs(a.x + a.y - b.x - b.y)
+				+ Math.abs(a.y - b.y))
+				/ 2;
+	}
+
 	if (isMaze) buildMaze();
 
-	this.getWalls = function(sideLength) {
+	this.getDistanceToCenter = function(a) {
+		return getDistance(a, new Hexagon(0, 0));
+	};
+
+	this.getHexNeighbors = function(a) {
+		return getNeighbors(a);
+	};
+
+	this.getWalls = function(hex, sideLength, getALl) {
 		const walls = [];
-		for (let i = 0; i < grid.length; i++) {
-			const hex = grid[i];
-			const width = sideLength * 2;
-			const height = Math.sqrt(3) / 2 * width;
-			let { x, y } = hex.calculatePosition(width, height);
-			const points = [];
-			for (let a = 0; a < Math.PI * 2; a += Math.PI * 2 / 6) {
-				let sx = x + Math.cos(a) * sideLength;
-				let sy = y + Math.sin(a) * sideLength;
-				points.push(new THREE.Vector3(sx, 0, sy));
-			}
-			for (let j = 0; j < points.length - 1; j++) {
-				if (hex.walls[j]) {
-					let x = (points[j].x + points[j + 1].x) / 2;
-					let z = (points[j].z + points[j + 1].z) / 2;
-					let rotation = (j + (j + 1)) * Math.PI * 1 / 6 * -1;
-					walls.push({ x: x, z: z, rotation: rotation, key: hex.getKey() });
-				}
+		const width = sideLength * 2;
+		const height = Math.sqrt(3) / 2 * width;
+		let { x, y } = hex.calculatePosition(width, height);
+		const points = []; // these are points of hexagon
+		for (let a = 0; a < Math.PI * 2; a += Math.PI * 2 / 6) {
+			let sx = x + Math.cos(a) * sideLength;
+			let sy = y + Math.sin(a) * sideLength;
+			points.push(new THREE.Vector3(sx, 0, sy));
+		}
+		for (let j = 0; j < points.length - 1; j++) {
+			if (hex.walls[j] || getALl) {
+				// this gives the middle point of the wall
+				let x = (points[j].x + points[j + 1].x) / 2;
+				let z = (points[j].z + points[j + 1].z) / 2;
+				let rotation = (j + (j + 1)) * Math.PI * 1 / 6 * -1;
+				let distance = getDistance(hex, new Hexagon(0, 0));
+				walls.push({ x: x, z: z, rotation: rotation, key: hex.getKey(), distance: distance, hasWall: hex.walls[j] });
 			}
 		}
 		return walls;

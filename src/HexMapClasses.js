@@ -85,7 +85,16 @@ class Hexagon extends Axial {
 		this.walls[3] = c.y >= 0;
 		this.walls[4] = c.z <= 0;
 		this.walls[5] = c.x >= 0;
+	}
 
+	getDirection(hex) {
+		let [x, y] = [hex.x - this.x, hex.y - this.y];
+		if (x == 1 && y == 0) return 'SE';
+		if (x == 1 && y == -1) return 'NE';
+		if (x == 0 && y == -1) return 'N';
+		if (x == -1 && y == 0) return 'NW';
+		if (x == -1 && y == 1) return 'SW';
+		if (x == 0 && y == 1) return 'S';
 	}
 }
 

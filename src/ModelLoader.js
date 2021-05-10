@@ -15,6 +15,7 @@ export default function ModelLoader(callback) {
 	const manager = new THREE.LoadingManager();
 	const loader = new GLTFLoader(manager);
 	const instances = {};
+	let scene;
 	
 	
 	manager.onLoad = () => {
@@ -42,6 +43,7 @@ export default function ModelLoader(callback) {
 
 	function addInstanceMesh(key, letter, gltf, params) {
 		// add shadows -- https://discourse.threejs.org/t/shadow-for-instances/7947/10
+
 		const { str, texturePath, repeat, color, shadow } = params;
 
 		const texture = new THREE.TextureLoader().load(texturePath);
@@ -55,7 +57,7 @@ export default function ModelLoader(callback) {
 		});
 
 		const geo = gltf.scene.children[0].geometry;
-		const mesh = new THREE.InstancedMesh(geo, material, 512);
+		const mesh = new THREE.InstancedMesh(geo, material, 1024);
 		mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 		mesh.castShadow = shadow[0];
 		mesh.receiveShadow = shadow[1];
@@ -65,7 +67,7 @@ export default function ModelLoader(callback) {
 		};
 	}
 
-	this.addInstance = function(scene, key, letter, matrix) {
+	this.addInstance = function(key, letter, matrix) {
 		if (letter == 'random') letter = choice(...Object.keys(instances[key]));
 		if (instances[key][letter].count == 0) scene.add(instances[key][letter].mesh);
 		instances[key][letter].mesh.setMatrixAt(instances[key][letter].count++, matrix);
@@ -83,6 +85,10 @@ export default function ModelLoader(callback) {
 
 	this.getGLTF = function(type, key) {
 		return cloneGltf(models[type].gltfs[key]);
+	};
+
+	this.setScene = function(_scene) {
+		scene = _scene;
 	};
 
 }

@@ -23,8 +23,8 @@ import C from './Constants';
 let camera, scene, renderer, stats, dpr;
 let w = window.innerWidth, h = window.innerHeight;
 let controls;
-const cameraOffset = new THREE.Vector3(-120, 60, -120); // distant view for testing
-// const cameraOffset = new THREE.Vector3(-6, 6, -8);
+// const cameraOffset = new THREE.Vector3(-120, 60, -120); // distant view for testing
+const cameraOffset = new THREE.Vector3(-6, 6, -8);
 let thirdPersonCamera;
 let physics;
 let playerInput, playerController;
@@ -72,6 +72,7 @@ function init() {
 	document.body.appendChild(renderer.domElement);
 
 	scene = setupScene(modelLoader);
+	modelLoader.setScene(scene);
 	renderer.setClearColor(scene.fog.color);
 // stats
 	stats = new Stats();
@@ -81,12 +82,12 @@ function init() {
 // setup
 
 	const hexMap = new HexMap(C.hexRings, true);
-	console.log(hexMap.getHexes());
 	
 	const ground = new Ground();
 	scene.add(ground.mesh);
 	
 	physics = new Physics(scene, ground, hexMap, modelLoader);
+
 	
 	playerInput = new CharacterControllerInput();
 	playerController = new CharacterController(scene, physics, modelLoader, playerInput, [3, 8, 3]);
@@ -100,8 +101,11 @@ function init() {
 
 	// ais = new AI(hexMap, scene, physics, modelLoader);
 
-	renderer.render(scene, camera); // rendering makes ray cast work ??
-	addScenery(scene, modelLoader, ground);
+
+	// renderer.render(scene, camera); // rendering makes ray cast work ??
+
+	addScenery(scene, modelLoader, ground, hexMap);
+
 }
 
 let previousRAF = null;
@@ -163,7 +167,7 @@ window.addEventListener("message", (event) => {
 	if (event.data.testAxes) {
 		let { position, quaternion, length } = event.data.testAxes;
 		if (!quaternion) quaternion = new THREE.Quaternion().toArray();
-		// console.log(position, quaternion)
+		
 		const axes = new THREE.AxesHelper(length || 3);
 		axes.position.copy(position);
 		axes.quaternion.copy(new THREE.Quaternion().fromArray(quaternion));

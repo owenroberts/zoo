@@ -9,7 +9,7 @@ const constants = {
 	alphabet: 'abcdefghijklmnopqrstuvwxyz', // i love the alphabet
 	
 	// map, world settings
-	hexRings: 2,
+	hexRings: 3,
 	sideLength: 8,
 	sceneWidth: 256,
 	sceneDepth: 256,
@@ -76,13 +76,21 @@ const constants = {
 			path: './static/models/walls/',
 			str: 'abcdef',
 			filename: 'cross-',
-			instance: false,
+			instance: true,
+			texturePath: './static/textures/real/trunk.jpg',
+			repeat: 2,
+			color: 0x6f6c82,
+			shadow: [true, true],
 		},
 		post: {
 			path: './static/models/walls/',
 			str: 'abcd',
 			filename: 'post-',
-			instance: false,
+			instance: true,
+			texturePath: './static/textures/real/trunk.jpg',
+			repeat: 2,
+			color: 0x6f6c82,
+			shadow: [true, true],
 		},
 	},
 

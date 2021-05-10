@@ -73,8 +73,7 @@ export default function Ground() {
 		}
 	});
 
-	this.mesh.updateWorldMatrix();
-	this.mesh.children[0].geometry.computeFaceNormals();
+	this.mesh.updateMatrixWorld();
 
 	const verts = this.mesh.children[0].geometry.vertices.map(_v => {
 		const v = _v.clone();

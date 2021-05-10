@@ -30,7 +30,7 @@ export default function Physics(scene, ground, hexMap, models) {
 
 		world.defaultContactMaterial.contactEquationStiffness = 1e9;
 		world.defaultContactMaterial.contactEquationRelaxation = 4;
-		world.gravity.set(0, -20, 0);
+		world.gravity.set(0, -30, 0);
 		world.broadphase = new CANNON.SAPBroadphase(world);
 
 		world.quatNormalizeFast = true;
@@ -52,7 +52,7 @@ export default function Physics(scene, ground, hexMap, models) {
 
 		// world.addContactMaterial(physics_physics);
 
-		// scene.add(new THREE.AxesHelper(3)); // center of scene
+		scene.add(new THREE.AxesHelper(3)); // center of scene
 
 		world.addBody(ground.body);
 		addToCastList(ground.mesh);
@@ -60,44 +60,24 @@ export default function Physics(scene, ground, hexMap, models) {
 
 	function setupWalls() {
 
-		const meshes = {};
-		const texture = new THREE.TextureLoader().load(C.letterTexturePath);
-		texture.wrapS = THREE.RepeatWrapping;
-		texture.wrapT = THREE.RepeatWrapping;
-		texture.repeat.set( 4, 4 );
-		const material = getToonMaterial({
-			color: 0x6f6c82,
-			map: texture,
-		});
-		
-		C.alphabet.split('').forEach(letter => {
-			const model = models.getGLTF('letters', letter);
-			const geo = model.scene.children[0].geometry;
-			const mesh = new THREE.InstancedMesh(geo, material, 512);
-			mesh.instanceMatrix.setUsage( THREE.DynamicDrawUsage );
-			mesh.castShadow = true;
-			meshes[letter] = {
-				mesh: mesh,
-				count: 0,
-			};
+		// const walls = hexMap.getWalls(C.sideLength);
+		hexMap.getHexes().forEach(hex => {
+			hexMap.getWalls(hex, C.sideLength).forEach(params => {
+				const wall = new Wall(params, models, ground, true);
+				// scene.add(wall.container);
+				world.addBody(wall.body);
+				// addToCastList(wall.container);
+				// scene.add(wall.bodyMesh); // debug
+			});
 		});
 
-		const walls = hexMap.getWalls(C.sideLength);
-		walls.forEach(params => {
-			const wall = new Wall(params, C.sideLength, meshes, ground, false);
-			// scene.add(wall.container);
-			world.addBody(wall.body);
-			addToCastList(wall.container);
-			// scene.add(wall.bodyMesh); // debug
-		});
-
-		for (const m in meshes) {
-			meshes[m].mesh.count = meshes[m].count;
-			if (meshes[m].count > 0) {
-				// scene.add(meshes[m].mesh);
-				addToCastList(meshes[m].mesh);
-			}
-		}
+		// for (const m in meshes) {
+		// 	meshes[m].mesh.count = meshes[m].count;
+		// 	if (meshes[m].count > 0) {
+		// 		// scene.add(meshes[m].mesh);
+		// 		addToCastList(meshes[m].mesh);
+		// 	}
+		// }
 	}
 
 	function addToCastList(mesh) {
@@ -110,6 +90,8 @@ export default function Physics(scene, ground, hexMap, models) {
 
 	setupWorld();
 	setupWalls();
+
+
 
 	this.addBody = function(body) {
 		world.addBody(body);
