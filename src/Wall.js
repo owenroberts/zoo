@@ -23,7 +23,7 @@ export default class Wall {
 		this.body = new CANNON.Body({ mass: 0, material: new CANNON.Material() })
 		this.body.position.set(x, y + h * postHeight / 2, z);
 		this.body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), params.rotation - Math.PI / 2);
-		const shape = new CANNON.Box(new CANNON.Vec3(C.sideLength / 2, h * postHeight / 2, 0.25));
+		const shape = new CANNON.Box(new CANNON.Vec3(C.sideLength / 2, h * postHeight / 2, 0.5));
 		this.body.addShape(shape);
 		
 

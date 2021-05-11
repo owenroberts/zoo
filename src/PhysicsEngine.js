@@ -89,8 +89,7 @@ export default function Physics(scene, ground, hexMap, models) {
 	}
 
 	setupWorld();
-	setupWalls();
-
+	// setupWalls();
 
 
 	this.addBody = function(body) {

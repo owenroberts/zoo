@@ -53,29 +53,57 @@ export default function ModelLoader(callback) {
 
 		const material = getToonMaterial({
 			map: texture,
-			color: color,
+			color: color.length ? color[0] : color,
 		});
 
-		const geo = gltf.scene.children[0].geometry;
+		// grass and trees -- only support for two meshes, colors
+		const hasChildren = gltf.scene.children[0].children.length > 0;
+		const geo = hasChildren ? 
+			gltf.scene.children[0].children[0].geometry :
+			gltf.scene.children[0].geometry;
+		
 		const mesh = new THREE.InstancedMesh(geo, material, 1024);
 		mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 		mesh.castShadow = shadow[0];
 		mesh.receiveShadow = shadow[1];
+		
 		instances[key][letter] = {
 			mesh: mesh,
 			count: 0,
 		};
+
+		if (hasChildren) {
+			const geo2 = gltf.scene.children[0].children[1].geometry;
+			const mat2 = getToonMaterial({
+				map: texture,
+				color: color.length ? color[1] : color,
+			});
+			const mesh2 = new THREE.InstancedMesh(geo2, mat2, 1024);
+			mesh2.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+			mesh2.castShadow = shadow[0];
+			mesh2.receiveShadow = shadow[1];
+			instances[key][letter].mesh2 = mesh2;
+		}
 	}
 
 	this.addInstance = function(key, letter, matrix) {
 		if (letter == 'random') letter = choice(...Object.keys(instances[key]));
-		if (instances[key][letter].count == 0) scene.add(instances[key][letter].mesh);
+		if (instances[key][letter].count == 0) {
+			scene.add(instances[key][letter].mesh);
+			if (instances[key][letter].mesh2) scene.add(instances[key][letter].mesh2)
+		}
 		instances[key][letter].mesh.setMatrixAt(instances[key][letter].count++, matrix);
+		if (instances[key][letter].mesh2) {
+			instances[key][letter].mesh2.setMatrixAt(instances[key][letter].count, matrix);
+		}
 	};
 
 	this.updateCount = function(key) {
-		for (const m in instances[key]) {
-			instances[key][m].mesh.count = instances[key][m].count;
+		for (const letter in instances[key]) {
+			instances[key][letter].mesh.count = instances[key][letter].count;
+			if (instances[key][letter].mesh2) {
+				instances[key][letter].mesh2.count = instances[key][letter].count;
+			}
 		}
 	};
 
