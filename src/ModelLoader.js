@@ -25,20 +25,30 @@ export default function ModelLoader(callback) {
 	console.time('models loaded');
 
 	Object.keys(C.models).forEach(key => {
-		const { str, path, filename, instance } = C.models[key];
+		const { str, path, filename, instance, filenames } = C.models[key];
 		if (instance) instances[key] = {};
-		models[key].gltfs = {}; 
+		models[key].gltfs = {};
 
-		str.split('').forEach(letter => {
-			loader.load(`${path}${filename}${letter}.glb`, gltf => {
-				if (key == 'grass' && letter == 'h') console.log(gltf)
-				models[key].gltfs[letter] = gltf;
+		if (str) {
+			str.split('').forEach(letter => {
+				loader.load(`${path}${filename}${letter}.glb`, gltf => {
+					if (key == 'grass' && letter == 'h') console.log(gltf)
+					models[key].gltfs[letter] = gltf;
 
-				if (instance) {
-					addInstanceMesh(key, letter, gltf, C.models[key]);
-				}
+					if (instance) {
+						addInstanceMesh(key, letter, gltf, C.models[key]);
+					}
+				});
 			});
-		});
+		}
+
+		if (!str && filenames) {
+			filenames.forEach(filename => {
+				loader.load(`${path}${filename}.glb`, gltf => {
+					models[key].gltfs[filename] = gltf;
+				});
+			});
+		}
 	});
 
 	function addInstanceMesh(key, letter, gltf, params) {

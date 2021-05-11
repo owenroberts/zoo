@@ -147,7 +147,6 @@ export default function addScenery(scene, modelLoader, ground, hexMap) {
 			}
 		});
 
-
 		const d = new THREE.Vector3(endWall.x, y, endWall.z)
 			.distanceTo(new THREE.Vector3(endPosition.x, y, endPosition.y));
 		for (let i = 0; i < 10; i++) {
@@ -158,7 +157,6 @@ export default function addScenery(scene, modelLoader, ground, hexMap) {
 			point.translateZ(i / 10 * d);
 			addPoint(point, i == 9);
 		}
-
 
 		function addPoint(point, isLast) {
 			const p = new THREE.AxesHelper(1);
@@ -225,18 +223,29 @@ export default function addScenery(scene, modelLoader, ground, hexMap) {
 			}
 		});
 
-
-		// [start, middle, end].forEach(hex => {
-		// 	const pos = hex.calculatePosition(C.sideLength);
-		// 	window.postMessage({
-		// 		testAxes: {
-		// 			position: new THREE.Vector3(pos.x, y, pos.y),
-		// 		}
-		// 	});
-		// });
-
 		modelLoader.updateCount('cross');
 		modelLoader.updateCount('post');
+
+		const viewer = modelLoader.getModel('items', 'viewer');
+		viewer.position.copy(allPoints[allPoints.length - 1].position);
+		viewer.quaternion.copy(allPoints[allPoints.length - 1].quaternion);
+		viewer.translateZ(-0.5);
+		viewer.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI);
+		const texture = new THREE.TextureLoader().load(C.viewerTexturePath);
+		texture.wrapS = THREE.RepeatWrapping;
+		texture.wrapT = THREE.RepeatWrapping;
+		texture.repeat.set(8, 8);
+		const material = getToonMaterial({
+			color: 0xc7e0ed,
+			map: texture,
+		});
+		viewer.traverse(child => {
+			if (child.constructor.name == 'Mesh') {
+				child.material = material;
+				child.receiveShadow = true;
+			}
+		});
+		scene.add(viewer);
 	}
 
 	addTrees();

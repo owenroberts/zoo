@@ -13,7 +13,7 @@ export default function setupScene(modelLoader) {
 	const scene = new THREE.Scene();
 	scene.background = new THREE.Color().setHSL( 0.6, 0, 1 );
 	scene.background = new THREE.Color( 0x000000 );
-	scene.fog = new THREE.Fog( scene.background, 1, 600 );
+	scene.fog = new THREE.Fog( scene.background, 1, 250 );
 	scene.fog.color.setHSL( 0.095, 0.4, 0.3 );
 
 	function addLighting() {

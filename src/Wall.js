@@ -8,13 +8,14 @@ import getToonMaterial from './ToonMaterial';
 import { bodyToMesh } from './lib/three-conversion-utils.js';
 import C from './Constants';
 
-
 export default class Wall {
-	constructor(params, modelLoader, ground, showHelper) {
+	constructor(params, modelLoader, ground, labelWall, showHelper) {
+		const self = this;
 		const { x, z, rotation, key, distance } = params;
 		const y = 4; // ground.getClosestVert(x, z);
 		const h = distance + 1;
 		const postHeight = 2.8;
+		const isRock = distance == 3 || chance(0.4);
 
 		this.container = new THREE.Group();
 		this.container.position.set(x, y, z);
@@ -23,36 +24,68 @@ export default class Wall {
 		this.body = new CANNON.Body({ mass: 0, material: new CANNON.Material() })
 		this.body.position.set(x, y + h * postHeight / 2, z);
 		this.body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0), params.rotation - Math.PI / 2);
-		const shape = new CANNON.Box(new CANNON.Vec3(C.sideLength / 2, h * postHeight / 2, 0.5));
+		const shape = new CANNON.Box(new CANNON.Vec3(C.sideLength / 2, h * postHeight / 2, isRock ? 1 : 0.5));
 		this.body.addShape(shape);
 		
 
 		const dummy = new THREE.Object3D();
-		for (let j = 0; j < h; j++) {
 
-			dummy.position.set(x, y, z);
-			dummy.quaternion.copy(this.container.quaternion);
-			dummy.translateX(-C.sideLength / 2);
-			dummy.translateY(j * postHeight);
-			
-			for (let i = 0; i < 3; i++) {
+		function addFence() {
+			for (let j = 0; j < h; j++) {
 
-				dummy.updateMatrix();
-				modelLoader.addInstance('post', 'random', dummy.matrix);
+				dummy.position.set(x, y, z);
+				dummy.quaternion.copy(self.container.quaternion);
+				dummy.translateX(-C.sideLength / 2);
+				dummy.translateY(j * postHeight);
 				
-				if (i < 2) {
-					dummy.translateY(0.2);
-					for (let i = 0; i < 8; i++) {
-						dummy.updateMatrix();
-						if (chance(0.9)) modelLoader.addInstance('cross', 'random', dummy.matrix);
-						dummy.translateY(0.33);
-					}
-				}
+				for (let i = 0; i < 3; i++) {
 
-				dummy.translateX(C.sideLength / 2);
-				dummy.position.y = y + j * postHeight;
+					dummy.updateMatrix();
+					modelLoader.addInstance('post', 'random', dummy.matrix);
+					
+					if (i < 2) {
+						dummy.translateY(0.2);
+						for (let i = 0; i < 8; i++) {
+							dummy.updateMatrix();
+							if (chance(0.9)) modelLoader.addInstance('cross', 'random', dummy.matrix);
+							dummy.translateY(0.33);
+						}
+					}
+
+					dummy.translateX(C.sideLength / 2);
+					dummy.position.y = y + j * postHeight;
+				}
 			}
 		}
+
+		function addRock() {
+
+			for (let j = 0; j < h; j++) {
+				dummy.position.set(x, y, z);
+				dummy.quaternion.copy(self.container.quaternion);
+				dummy.translateY(j * postHeight);
+				dummy.updateMatrix();
+				modelLoader.addInstance('rocks', 'random', dummy.matrix);
+			}
+		}
+
+		function addLabel() {
+			console.log('add label');
+			const str = 'zooas';
+			dummy.position.set(x, ground.getHeight(x, z).point.y, z);
+			dummy.quaternion.copy(self.container.quaternion);
+			dummy.translateX(-4);
+			for (let i = 0; i < str.length; i++) {
+				dummy.updateMatrix();
+				modelLoader.addInstance('letters', str[i], dummy.matrix);
+				dummy.translateX(2);
+			}
+
+		}
+
+		if (labelWall) addLabel();
+		else if (isRock) addRock();
+		else addFence();
 
 
 		if (showHelper) {

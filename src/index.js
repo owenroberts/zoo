@@ -87,7 +87,6 @@ function init() {
 	scene.add(ground.mesh);
 	
 	physics = new Physics(scene, ground, hexMap, modelLoader);
-
 	
 	playerInput = new CharacterControllerInput();
 	playerController = new CharacterController(scene, physics, modelLoader, playerInput, [3, 8, 3]);

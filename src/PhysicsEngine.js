@@ -62,13 +62,19 @@ export default function Physics(scene, ground, hexMap, models) {
 
 		// const walls = hexMap.getWalls(C.sideLength);
 		hexMap.getHexes().forEach(hex => {
-			hexMap.getWalls(hex, C.sideLength).forEach(params => {
-				const wall = new Wall(params, models, ground, true);
-				// scene.add(wall.container);
+			let walls = hexMap.getWalls(hex, C.sideLength);
+			let labelWall;
+			if (hex.getKey() == '0 x 0') {
+				labelWall = choice(...walls);
+			}
+			for (let i = 0; i < walls.length; i++) {
+				const wall = new Wall(walls[i], models, ground, walls[i] == labelWall, true);
 				world.addBody(wall.body);
+
+				// scene.add(wall.container);
 				// addToCastList(wall.container);
 				// scene.add(wall.bodyMesh); // debug
-			});
+			}
 		});
 
 		// for (const m in meshes) {
@@ -78,6 +84,7 @@ export default function Physics(scene, ground, hexMap, models) {
 		// 		addToCastList(meshes[m].mesh);
 		// 	}
 		// }
+		models.updateCount('rocks');
 	}
 
 	function addToCastList(mesh) {
@@ -89,8 +96,7 @@ export default function Physics(scene, ground, hexMap, models) {
 	}
 
 	setupWorld();
-	// setupWalls();
-
+	setupWalls();
 
 	this.addBody = function(body) {
 		world.addBody(body);

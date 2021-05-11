@@ -31,6 +31,7 @@ const constants = {
 	characterTexturePath: () => {
 		return `./static/textures/pixels/character-${choice(1,2,3,4,5)}.png`;
 	},
+	viewerTexturePath: `./static/textures/pixels/n${choice(1,2,3,4,5,6)}.png`,
 
 	// models
 	models: {
@@ -100,6 +101,21 @@ const constants = {
 			color: 0x6f6c82,
 			shadow: [true, true],
 		},
+		rocks: {
+			path: './static/models/walls/',
+			str: 'abcde',
+			filename: 'rock-',
+			instance: true,
+			texturePath: './static/textures/real/stone.jpg',
+			repeat: 4,
+			color: 0xfaf9de,
+			shadow: [true, true],
+		},
+		items: {
+			path: './static/models/items/',
+			filenames: ['viewer'],
+			instance: false,
+		}
 	},
 
 	// onboarding commands
