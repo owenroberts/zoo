@@ -100,10 +100,10 @@ function init() {
 
 	// ais = new AI(hexMap, scene, physics, modelLoader);
 
-
-	// renderer.render(scene, camera); // rendering makes ray cast work ??
-
 	addScenery(scene, modelLoader, ground, hexMap);
+
+	// update all models counts
+	modelLoader.updateCount();
 
 }
 

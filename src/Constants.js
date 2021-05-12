@@ -113,7 +113,7 @@ const constants = {
 		},
 		items: {
 			path: './static/models/items/',
-			filenames: ['viewer'],
+			filenames: ['viewer', 'arrow-left', 'arrow-right'],
 			instance: false,
 		}
 	},

@@ -31,9 +31,6 @@ export default function addScenery(scene, modelLoader, ground, hexMap) {
 				}
 			}
 		}
-
-		modelLoader.updateCount('trees');
-		modelLoader.updateCount('grass');
 	}
 
 	function addGrass(_x, _y, _z) {
@@ -87,13 +84,11 @@ export default function addScenery(scene, modelLoader, ground, hexMap) {
 			}
 		}
 
-		modelLoader.updateCount('buildings');
 	}
 
 	function addObservationDeck() {
 
-		const hexes = hexMap.getHexes();
-		const start = choice(...hexes.filter(hex => hexMap.getDistanceToCenter(hex) == 3));
+		const start = hexMap.observationDeskStartHex;
 		const middle = choice(...hexMap.getHexNeighbors(start));
 		const neighbors = hexMap.getHexNeighbors(middle);
 		const y = 15;
@@ -222,9 +217,6 @@ export default function addScenery(scene, modelLoader, ground, hexMap) {
 				finishedSide = !gotNext;
 			}
 		});
-
-		modelLoader.updateCount('cross');
-		modelLoader.updateCount('post');
 
 		const viewer = modelLoader.getModel('items', 'viewer');
 		viewer.position.copy(allPoints[allPoints.length - 1].position);

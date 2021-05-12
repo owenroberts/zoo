@@ -11,7 +11,7 @@ import C from './Constants';
 export default class Wall {
 	constructor(params, modelLoader, ground, labelWall, showHelper) {
 		const self = this;
-		const { x, z, rotation, key, distance } = params;
+		const { x, z, rotation, key, distance, arrow } = params;
 		const y = 4; // ground.getClosestVert(x, z);
 		const h = distance + 1;
 		const postHeight = 2.8;
@@ -69,10 +69,10 @@ export default class Wall {
 			}
 		}
 
-		function addLabel() {
-			console.log('add label');
-			const str = 'zooas';
-			dummy.position.set(x, ground.getHeight(x, z).point.y, z);
+		function addLabel(_y, letter) {
+			const str = `zoo${letter}s`;
+			const ny = _y > 0 ? _y : ground.getHeight(x, z).point.y;
+			dummy.position.set(x, ny, z);
 			dummy.quaternion.copy(self.container.quaternion);
 			dummy.translateX(-4);
 			for (let i = 0; i < str.length; i++) {
@@ -80,11 +80,36 @@ export default class Wall {
 				modelLoader.addInstance('letters', str[i], dummy.matrix);
 				dummy.translateX(2);
 			}
-
 		}
 
-		if (labelWall) addLabel();
-		else if (isRock) addRock();
+		function addArrow(direction, _y) {
+			const arrow = modelLoader.getModel('items', `arrow-${direction}`);
+			// arrow.position.set(x, y, z);
+			arrow.translateY(_y);
+			const texture = new THREE.TextureLoader().load(C.letterTexturePath);
+			texture.wrapS = THREE.RepeatWrapping;
+			texture.wrapT = THREE.RepeatWrapping;
+			texture.repeat.set(8, 8);
+			const material = getToonMaterial({
+				color: 0x6f6c82,
+				map: texture,
+			});
+			arrow.traverse(child => {
+				if (child.constructor.name == 'Mesh') {
+					child.material = material;
+					child.receiveShadow = true;
+				}
+			});
+			self.container.add(arrow);
+		}
+
+		if (arrow) {
+			addArrow(arrow, arrow == 'left' ? 12 : 14);
+			addLabel(arrow == 'left' ? 17 : 15, arrow == 'left' ? 'b' : 'c');
+		}
+
+		if (labelWall) addLabel(0, 'a');
+		else if (isRock || arrow) addRock();
 		else addFence();
 
 

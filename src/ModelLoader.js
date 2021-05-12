@@ -108,11 +108,13 @@ export default function ModelLoader(callback) {
 		}
 	};
 
-	this.updateCount = function(key) {
-		for (const letter in instances[key]) {
-			instances[key][letter].mesh.count = instances[key][letter].count;
-			if (instances[key][letter].mesh2) {
-				instances[key][letter].mesh2.count = instances[key][letter].count;
+	this.updateCount = function() {
+		for (const key in instances) {
+			for (const letter in instances[key]) {
+				instances[key][letter].mesh.count = instances[key][letter].count;
+				if (instances[key][letter].mesh2) {
+					instances[key][letter].mesh2.count = instances[key][letter].count;
+				}
 			}
 		}
 	};

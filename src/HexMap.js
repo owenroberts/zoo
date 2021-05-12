@@ -101,17 +101,22 @@ export default function HexMap(radius, isMaze) {
 				/ 2;
 	}
 
+	function getDistanceToCenter(a) {
+		return getDistance(a, new Hexagon(0, 0));
+	}
+
 	if (isMaze) buildMaze();
 
-	this.getDistanceToCenter = function(a) {
-		return getDistance(a, new Hexagon(0, 0));
-	};
+	// choose observation deck hex
+	this.observationDeskStartHex = choice(...grid.filter(hex => getDistanceToCenter(hex) == 3));
+	this.arrowHex = choice(...grid.filter(hex => getDistance(hex, this.observationDeskStartHex) == 6));
+	this.arrowHex.isArrowHex = true;
 
 	this.getHexNeighbors = function(a) {
 		return getNeighbors(a);
 	};
 
-	this.getWalls = function(hex, sideLength, getALl) {
+	this.getWalls = function(hex, sideLength, getAll) {
 		const walls = [];
 		const width = sideLength * 2;
 		const height = Math.sqrt(3) / 2 * width;
@@ -123,7 +128,7 @@ export default function HexMap(radius, isMaze) {
 			points.push(new THREE.Vector3(sx, 0, sy));
 		}
 		for (let j = 0; j < points.length - 1; j++) {
-			if (hex.walls[j] || getALl) {
+			if (hex.walls[j] || getAll) {
 				// this gives the middle point of the wall
 				let x = (points[j].x + points[j + 1].x) / 2;
 				let z = (points[j].z + points[j + 1].z) / 2;
