@@ -22,11 +22,6 @@ export default function CharacterAI(input, controller, dialog, debug) {
 	const playerTalkDistance = 5;
 	let talkedToPlayer = false;
 
-	function checkPlayer(player) {
-		let { position } = controller.getProps();
-		let distance = position.distanceTo(player.position);
-		return distance < playerTalkDistance;
-	}
 
 	function directionTo(target) {
 		let { position, quaternion } = controller.getProps();
@@ -54,20 +49,18 @@ export default function CharacterAI(input, controller, dialog, debug) {
 	}
 
 	function talkToPlayer(player) {
-		if (checkPlayer(player)) {
-			talkedToPlayer = true;
-			input.killActions();
-			// turn to player ... 
-			const direction = directionTo(player.position);
-			const alignTime = Math.abs(direction) * 3;
-			input.addAction(direction > 0 ? 'right' : 'left', alignTime);
-			input.addAction('talk', dialog.length, alignTime + 1, () => {
-				window.postMessage({ aiMessage: dialog });
-			});
-		}
+		talkedToPlayer = true;
+		input.killActions();
+		// turn to player ... 
+		const direction = directionTo(player.position);
+		const alignTime = Math.abs(direction) * 3;
+		input.addAction(direction > 0 ? 'right' : 'left', alignTime);
+		input.addAction('talk', dialog.length, alignTime + 1, () => {
+			window.postMessage({ aiMessage: dialog });
+		});
 	}
 
-	function flock(others) {
+	function flock(others, canTalk) {
 		const { id, position, velocity, quaternion } = controller.getProps();
 		const alignment = new THREE.Vector3(); // flock velocity
 		const center = new THREE.Vector3();
@@ -75,9 +68,25 @@ export default function CharacterAI(input, controller, dialog, debug) {
 
 		for (let i = 0; i < others.length; i++) {
 			const other = others[i];
+
 			if (other.id != id) {
 				const distance = position.distanceTo(other.position);
 				if (distance < flockRadius) {
+
+					// player talk check
+					if (i == 0 && distance < playerTalkDistance &&
+						canTalk && !talkedToPlayer && !other.isTalking && !input.jump) {
+						talkToPlayer(other);
+						return true;
+					}
+
+					// sniff check
+					if (controller.sniffCheck(other)) {
+						input.killActions();
+						input.addAction('sniff', 20);
+						return false;
+					}
+
 					total++;
 					center.add(other.position);
 					alignment.add(other.velocity);
@@ -91,6 +100,7 @@ export default function CharacterAI(input, controller, dialog, debug) {
 				}
 			}
 		}
+		// return false; // debug
 
 		center.divideScalar(total);
 
@@ -109,28 +119,16 @@ export default function CharacterAI(input, controller, dialog, debug) {
 			const dist = position.distanceTo(center);
 			if (dist > 2) input.addAction('forward', dist);
 		}
+
+		return false;
 	}
 
 	this.update = function(timeElapsed, others, canTalk) {
 		if (!input || !controller) return;
 
-		let returnTalkedToPlayer = false; // prevent multiple talks in one update
-		
-		if (canTalk && !talkedToPlayer && !others[0].isTalking && !input.jump) {
-			returnTalkedToPlayer = true;
-			talkToPlayer(others[0]);
-		}
-
-		if (!input.hasAction('talk')) {
-			if (controller.sniffCheck(others)) {
-				input.killActions();
-				input.addAction('sniff', 20);
-			}
-		}
-
-		if (!input.hasAction('talk') && !input.hasAction('sniff')) {
-			flock(others);
-		}
+		let returnTalkedToPlayer = false
+		if (!input.hasAction('talk') && !input.hasAction('sniff'))
+			returnTalkedToPlayer = flock(others, canTalk);
 
 		input.update(timeElapsed);
 		controller.update(timeElapsed);

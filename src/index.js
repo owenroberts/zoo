@@ -98,7 +98,7 @@ function init() {
 	// controls.maxDistance = 50;
 	// controls.enableZoom = false;
 
-	// ais = new AI(hexMap, scene, physics, modelLoader);
+	ais = new AI(hexMap, scene, physics, modelLoader);
 
 	addScenery(scene, modelLoader, ground, hexMap);
 
@@ -134,7 +134,7 @@ function animate() {
 		
 		if (ais) {
 			const aiProps = ais.update(timeElapsed, playerController.getProps());
-			playerInput.sniff = playerController.sniffCheck(aiProps);
+			// playerInput.sniff = playerController.sniffCheck(aiProps);
 		}
 
 		physics.update(timeElapsed);

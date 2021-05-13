@@ -289,21 +289,17 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		};
 	};
 
-	this.sniffCheck = function(others) {
+	this.sniffCheck = function(other) {
 		const face = new THREE.Object3D();
 		face.applyQuaternion(container.quaternion);
 		face.position.copy(container.position);
 		face.translateZ(radius + 0.5);
 
-		for (let i = 0; i < others.length; i++) {
-			if (others[i].id != body.id) {
-				const butt = new THREE.Object3D();
-				butt.applyQuaternion(others[i].quaternion);
-				butt.position.copy(others[i].position);
-				butt.translateZ(-others[i].radius);
-				return face.position.distanceTo(butt.position) < buttSniffDistance;
-			}
-		}
+		const butt = new THREE.Object3D();
+		butt.applyQuaternion(other.quaternion);
+		butt.position.copy(other.position);
+		butt.translateZ(-other.radius);
+		return face.position.distanceTo(butt.position) < buttSniffDistance;
 
 		return false;
 	};
