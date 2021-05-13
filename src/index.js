@@ -7,6 +7,20 @@ import { ThirdPersonCamera } from './ThirdPersonCamera';
 import { OrbitControls } from './OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js';
+import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorShader.js';
+import { HorizontalBlurShader } from 'three/examples/jsm/shaders/HorizontalBlurShader.js';
+import { VerticalBlurShader } from 'three/examples/jsm/shaders/VerticalBlurShader.js';
+import { HalftonePass } from 'three/examples/jsm/postprocessing/HalftonePass.js';
+import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
+import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
+import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
+
 import { choice, random, chance } from './Cool';
 import Ground from './Ground';
 import setupScene from './SceneSetup';
@@ -21,6 +35,7 @@ import C from './Constants';
 
 // three.js variables
 let camera, scene, renderer, stats, dpr;
+let composer, effects, effectSobel, outlinePass;
 let w = window.innerWidth, h = window.innerHeight;
 let controls;
 // const cameraOffset = new THREE.Vector3(-120, 60, -120); // distant view for testing
@@ -105,6 +120,49 @@ function init() {
 	// update all models counts
 	modelLoader.updateCount();
 
+// effects
+	composer = new EffectComposer( renderer );
+	const renderPass = new RenderPass( scene, camera );
+	composer.addPass( renderPass );
+
+	const effectGrayScale = new ShaderPass( LuminosityShader );
+
+	effectSobel = new ShaderPass( SobelOperatorShader );
+	effectSobel.uniforms[ 'resolution' ].value.x = w * window.devicePixelRatio;
+	effectSobel.uniforms[ 'resolution' ].value.y = h * window.devicePixelRatio;
+
+	const halftonePass = new HalftonePass(w, h, {
+		shape: 1,
+		radius: 4,
+		rotateR: Math.PI / 12,
+		rotateB: Math.PI / 12 * 2,
+		rotateG: Math.PI / 12 * 3,
+		scatter: 0,
+		blending: 0.75,
+		blendingMode: 3,
+		greyscale: false,
+		disable: false
+	});
+	
+	const effectVignette = new ShaderPass( VignetteShader );
+	effectVignette.uniforms[ "offset" ].value = 1;
+	effectVignette.uniforms[ "darkness" ].value = 1.3;
+
+	const effectFilm = new FilmPass( 0.35, 0, 0, false );
+	const gammaCorrection = new ShaderPass( GammaCorrectionShader );
+
+	const effectFXAA = new ShaderPass( FXAAShader );
+	effectFXAA.uniforms[ 'resolution' ].value.set( 1 / w, 1 / h );
+				
+
+	
+	// composer.addPass( effectSobel );
+	// composer.addPass( effectGrayScale );
+	// composer.addPass( halftonePass );
+	// composer.addPass( effectFilm );
+	// composer.addPass( effectVignette );
+	// composer.addPass( gammaCorrection );
+	// composer.addPass( effectFXAA );
 }
 
 let previousRAF = null;
@@ -112,7 +170,9 @@ function animate() {
 	requestAnimationFrame(t => {
 		if (previousRAF === null) previousRAF = t;
 		animate();
-		renderer.render(scene, camera);
+		composer.render();
+		// renderer.render(scene, camera);
+		
 		const timeElapsed = t - previousRAF;
 		
 		if (playerController) playerController.update(timeElapsed);
@@ -149,9 +209,11 @@ function animate() {
 function onWindowResize() {
 	w = window.innerWidth;
 	h = window.innerHeight;
-	camera.aspect = window.innerWidth / window.innerHeight
-	camera.updateProjectionMatrix()
-	renderer.setSize(dpr * w, dpr * (w * h / w))
+	camera.aspect = w / h;
+	camera.updateProjectionMatrix();
+	renderer.setSize(dpr * w, dpr * (w * h / w));
+	effectSobel.uniforms[ 'resolution' ].value.x = w * window.devicePixelRatio;
+	effectSobel.uniforms[ 'resolution' ].value.y = h * window.devicePixelRatio;
 }
 
 // message events
