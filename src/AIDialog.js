@@ -25,6 +25,9 @@ const dialogs = [
 	"do not go astray.  stay with us until they return.",
 	"when the sun sets, the light of the angels will return, when the sun sets for the twelfth night, in the twelfth month.",
 	"they are devils, they bear false knowledge, they have forgotten the words of the angels in their absense.",
+	"i think those people are really devils, they're bearing false knowledge and they forgot the words that angels would say in their absense.",
+	"the light of the angels will come back when the sun sets, it might be after twelve nights, or twelve months.",
+	
 ];
 
 export default dialogs;

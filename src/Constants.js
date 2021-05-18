@@ -18,7 +18,7 @@ const constants = {
 	buildingY: 3,
 
 	// ai settings
-	aiNum: 12,
+	aiNum: 1,
 
 	// textures
 	// buildingTexturePath: `./static/textures/pixels/building-${choice(1,2,3,4,5,6)}.png`,

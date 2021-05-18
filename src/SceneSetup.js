@@ -8,9 +8,8 @@ import getToonMaterial from './ToonMaterial';
 import { choice, random, chance, map, distance } from './Cool';
 import C from './Constants';
 
-export default function setupScene(modelLoader) {
+export default function setupScene(scene) {
 
-	const scene = new THREE.Scene();
 	scene.background = new THREE.Color().setHSL( 0.6, 0, 1 );
 	scene.background = new THREE.Color( 0x000000 );
 	scene.fog = new THREE.Fog( scene.background, 1, 250 );
