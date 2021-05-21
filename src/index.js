@@ -160,8 +160,8 @@ function init() {
 	composer = new EffectComposer(renderer);
 	composer.renderToScreen = true;
 	composer.addPass(blender);
-	composer.addPass(effectVignette);
-	composer.addPass(effectFilm);
+	// composer.addPass(effectVignette);
+	// composer.addPass(effectFilm);
 }
 
 

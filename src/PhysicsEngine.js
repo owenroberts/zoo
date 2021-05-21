@@ -13,7 +13,7 @@ import getToonMaterial from './ToonMaterial';
 import { choice } from './Cool';
 import { bodyToMesh } from './lib/three-conversion-utils.js';
 
-export default function Physics(scene, ground, hexMap, models) {
+export default function Physics(scene, ground, hexMap, modelLoader) {
 
 	const castList = []; // so character knows whens its on the ground -- raycast
 
@@ -68,11 +68,13 @@ export default function Physics(scene, ground, hexMap, models) {
 			if (hex.isArrowHex) {
 				walls[0].arrow = 'left';
 				walls[1].arrow = 'right';
+				addPortal(walls[0]);
+				addPortal(walls[1]);
 			}
 
 
 			for (let i = 0; i < walls.length; i++) {
-				const wall = new Wall(walls[i], models, ground, walls[i] == labelWall, true);
+				const wall = new Wall(walls[i], modelLoader, ground, walls[i] == labelWall, true);
 				world.addBody(wall.body);
 				if (walls[i].arrow) scene.add(wall.container);
 				// addToCastList(wall.container);
@@ -87,6 +89,47 @@ export default function Physics(scene, ground, hexMap, models) {
 		// 		addToCastList(meshes[m].mesh);
 		// 	}
 		// }
+
+	}
+
+	function addPortal(params) {
+		const { x, z, rotation } = params;
+		const y = ground.getHeight(x, z).point.y;
+		const portal = modelLoader.getModel('items', 'portal-3');
+		console.log(portal);
+		portal.position.set(x, y, z);
+
+		portal.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), rotation - Math.PI / 2);
+		portal.translateZ(-1.25);
+		portal.translateY(-0.25);
+
+		
+
+		const texture = new THREE.TextureLoader().load(C.portalTexturePath);
+		texture.wrapS = THREE.RepeatWrapping;
+		texture.wrapT = THREE.RepeatWrapping;
+		texture.repeat.set(8, 8);
+
+		const material = getToonMaterial({
+			color: 0x23630f,
+			map: texture,
+		});
+
+		const insideMaterial = getToonMaterial({
+			color: 0x222421,
+			map: texture,
+		});
+
+
+		portal.traverse(child => {
+			if (child.constructor.name == 'Mesh') {
+				console.log(child);
+				// child.material = material;
+				child.material = child.material.name == 'Outside' ? material : insideMaterial;
+				child.castShadow = true;
+			}
+		});
+		scene.add(portal);
 
 	}
 

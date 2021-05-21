@@ -83,7 +83,6 @@ export default function addScenery(scene, modelLoader, ground, hexMap) {
 				}
 			}
 		}
-
 	}
 
 	function addObservationDeck() {
@@ -94,7 +93,6 @@ export default function addScenery(scene, modelLoader, ground, hexMap) {
 		const y = 15;
 		let end = choice(...neighbors);
 		while (end.compareTo(start)) {
-			// console.log('fuck', start, neighbors);
 			end = choice(...neighbors);
 		}
 
@@ -234,7 +232,7 @@ export default function addScenery(scene, modelLoader, ground, hexMap) {
 		viewer.traverse(child => {
 			if (child.constructor.name == 'Mesh') {
 				child.material = material;
-				child.receiveShadow = true;
+				child.castShadow = true;
 			}
 		});
 		scene.add(viewer);

@@ -32,6 +32,7 @@ const constants = {
 		return `./static/textures/pixels/character-${choice(1,2,3,4,5)}.png`;
 	},
 	viewerTexturePath: `./static/textures/pixels/n${choice(1,2,3,4,5,6)}.png`,
+	portalTexturePath: `./static/textures/pixels/t${choice(1,2,3,4,5,6)}.png`,
 
 	// models
 	models: {
@@ -113,7 +114,7 @@ const constants = {
 		},
 		items: {
 			path: './static/models/items/',
-			filenames: ['viewer', 'arrow-left', 'arrow-right'],
+			filenames: ['viewer', 'arrow-left', 'arrow-right', 'portal-3'],
 			instance: false,
 		}
 	},
