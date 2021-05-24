@@ -7,9 +7,11 @@ import getToonMaterial from './ToonMaterial';
 import { choice, random, chance, map, distance } from './Cool';
 import C from './Constants';
 
-export default function addScenery(scene, modelLoader, ground, hexMap) {
+export default function Scenery(scene, ground, modelLoader) {
 
-	function addTrees() {
+	let removables = [];
+
+	this.addTrees = function() {
 
 		const dummy = new THREE.Object3D();
 
@@ -85,7 +87,7 @@ export default function addScenery(scene, modelLoader, ground, hexMap) {
 		}
 	}
 
-	function addObservationDeck() {
+	this.addObservationDeck = function(hexMap) {
 
 		const start = hexMap.observationDeskStartHex;
 		const middle = choice(...hexMap.getHexNeighbors(start));
@@ -235,10 +237,146 @@ export default function addScenery(scene, modelLoader, ground, hexMap) {
 				child.castShadow = true;
 			}
 		});
+		removables.push(viewer);
 		scene.add(viewer);
 	}
 
-	addTrees();
-	addBuildings();
-	addObservationDeck();
+	this.addWall = function(x, y, z, h, postHeight, rotation, isRock, isLabelWall, arrowDirection) {
+		const dummy = new THREE.Object3D();
+		const origin = new THREE.Object3D();
+		origin.position.set(x, y, z);
+		origin.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), rotation - Math.PI / 2);
+
+		function addFence() {
+			for (let j = 0; j < h; j++) {
+
+				dummy.position.set(x, y, z);
+				dummy.quaternion.copy(origin.quaternion);
+				dummy.translateX(-C.sideLength / 2);
+				dummy.translateY(j * postHeight);
+				
+				for (let i = 0; i < 3; i++) {
+
+					dummy.updateMatrix();
+					modelLoader.addInstance('post', 'random', dummy.matrix);
+					
+					if (i < 2) {
+						dummy.translateY(0.2);
+						for (let i = 0; i < 8; i++) {
+							dummy.updateMatrix();
+							if (chance(0.9)) modelLoader.addInstance('cross', 'random', dummy.matrix);
+							dummy.translateY(0.33);
+						}
+					}
+
+					dummy.translateX(C.sideLength / 2);
+					dummy.position.y = y + j * postHeight;
+				}
+			}
+		}
+
+		function addRock() {
+			for (let j = 0; j < h; j++) {
+				dummy.position.set(x, y, z);
+				dummy.quaternion.copy(origin.quaternion);
+				dummy.translateY(j * postHeight);
+				dummy.updateMatrix();
+				modelLoader.addInstance('rocks', 'random', dummy.matrix);
+			}
+		}
+
+		function addLabel(_y, letter) {
+			const str = `zoo${letter}s`;
+			const ny = _y > 0 ? _y : ground.getHeight(x, z).point.y;
+			dummy.position.set(x, ny, z);
+			dummy.quaternion.copy(origin.quaternion);
+			dummy.translateX(-4);
+			for (let i = 0; i < str.length; i++) {
+				dummy.updateMatrix();
+				modelLoader.addInstance('letters', str[i], dummy.matrix);
+				dummy.translateX(2);
+			}
+		}
+
+		function addArrow(direction, _y) {
+			const arrow = modelLoader.getModel('items', `arrow-${direction}`);
+			arrow.position.set(x, y, z);
+			arrow.quaternion.copy(origin.quaternion);
+			arrow.translateY(_y);
+			const texture = new THREE.TextureLoader().load(C.letterTexturePath);
+			texture.wrapS = THREE.RepeatWrapping;
+			texture.wrapT = THREE.RepeatWrapping;
+			texture.repeat.set(8, 8);
+			const material = getToonMaterial({
+				color: 0x6f6c82,
+				map: texture,
+			});
+			arrow.traverse(child => {
+				if (child.constructor.name == 'Mesh') {
+					child.material = material;
+					child.receiveShadow = true;
+				}
+			});
+			removables.push(arrow);
+			scene.add(arrow);
+		}
+
+		if (arrowDirection) {
+			addArrow(arrowDirection, arrowDirection == 'left' ? 12 : 14);
+			addLabel(arrowDirection == 'left' ? 17 : 15, arrowDirection == 'left' ? 'b' : 'c');
+		}
+
+		if (isLabelWall) addLabel(0, 'a');
+		else if (isRock || arrowDirection) addRock();
+		else addFence();
+	};
+
+	this.addPortal = function(params) {
+		const { x, z, rotation } = params;
+		const y = ground.getHeight(x, z).point.y;
+		const portal = modelLoader.getModel('items', 'portal-3');
+		portal.position.set(x, y, z);
+
+		portal.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0), rotation - Math.PI / 2);
+		portal.translateZ(1.5);
+		portal.translateY(2.5);
+
+		const texture = new THREE.TextureLoader().load(C.portalTexturePath);
+		texture.wrapS = THREE.RepeatWrapping;
+		texture.wrapT = THREE.RepeatWrapping;
+		texture.repeat.set(8, 8);
+
+		const material = getToonMaterial({
+			color: 0x23630f,
+			map: texture,
+		});
+
+		const insideMaterial = getToonMaterial({
+			color: 0x222421,
+			map: texture,
+		});
+
+		portal.traverse(child => {
+			if (child.constructor.name == 'Mesh') {
+				child.material = child.material.name == 'Outside' ? material : insideMaterial;
+				child.castShadow = true;
+			}
+		});
+		
+		removables.push(portal);
+		scene.add(portal);
+		return portal.position;
+	};
+
+	this.setup = function() {
+		addBuildings();
+	};
+
+	this.reset = function() {
+		for (let i = removables.length; i >= 0; i--) {
+			scene.remove(removables[i]);
+		}
+		removables = [];
+	};
+	
 }

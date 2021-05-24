@@ -15,14 +15,13 @@ import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorSha
 import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
 import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
-import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader.js';
 import { ColorCorrectionShader } from 'three/examples/jsm/shaders/ColorCorrectionShader.js';
 import { BlendShader } from 'three/examples/jsm/shaders/BlendShader.js';
 
 import { choice, random, chance } from './Cool';
 import Ground from './Ground';
 import setupScene from './SceneSetup';
-import addScenery from './Scenery';
+import Scenery from './Scenery';
 import HexMap from './HexMap';
 import DialogDisplay from './DialogDisplay';
 import AI from './AI';
@@ -39,7 +38,7 @@ let w = window.innerWidth, h = window.innerHeight;
 // const cameraOffset = new THREE.Vector3(-120, 60, -120); // distant view for testing
 const cameraOffset = new THREE.Vector3(-6, 6, -8);
 let thirdPersonCamera;
-let physics;
+let physics, ground, groundObjects = [], scenery, portals = [];
 let playerInput, playerController;
 
 let ais;
@@ -72,7 +71,7 @@ function init() {
 	camera.position.copy(cameraOffset.clone());
 
 	dpr = window.devicePixelRatio;
-	renderer = new THREE.WebGLRenderer({ antialias: true });
+	renderer = new THREE.WebGLRenderer({ antialias: false });
 	renderer.setSize(dpr * w, dpr * (w * h / w));
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -87,25 +86,23 @@ function init() {
 	modelLoader.setScene(scene);
 	renderer.setClearColor(scene.fog.color);
 
-
 // stats
 	stats = new Stats();
 	document.body.appendChild(stats.dom);
 	window.addEventListener('resize', onWindowResize);
 
-
 // setup
-	const hexMap = new HexMap(C.hexRings, true);
-	const ground = new Ground();
-	scene.add(ground.mesh);
 	
-	physics = new Physics(scene, ground, hexMap, modelLoader);
+	ground = new Ground();
+	scene.add(ground.mesh);
+	groundObjects.push(ground.mesh);
+	
+	physics = new Physics(scene, ground);
+	scenery = new Scenery(scene, ground, modelLoader);
+	scenery.setup();
 
 	playerInput = new CharacterControllerInput();
 	playerController = new CharacterController(scene, physics, modelLoader, playerInput, [3, 8, 3]);
-	
-	ais = new AI(hexMap, scene, physics, modelLoader);
-	addScenery(scene, modelLoader, ground, hexMap);
 
 	// thirdPersonCamera = new ThirdPersonCamera(camera, playerControls);
 	camera.lookAt(cameraOffset.clone());
@@ -116,27 +113,11 @@ function init() {
 	// controls.maxDistance = 50;
 	// controls.enableZoom = false;
 
-	modelLoader.updateCount();
+
+	buildLevel();
+	
 
 // post processing
-	const effectGrayScale = new ShaderPass( LuminosityShader );
-	const effectColorCorrect = new ShaderPass(ColorCorrectionShader);
-	// effectColorCorrect.uniforms['powRGB'].value.set(0.25, 0.5, 0.25);
-
-	effectSobel = new ShaderPass( SobelOperatorShader );
-	effectSobel.uniforms[ 'resolution' ].value.x = w * window.devicePixelRatio;
-	effectSobel.uniforms[ 'resolution' ].value.y = h * window.devicePixelRatio;
-
-	const effectFXAA = new ShaderPass( FXAAShader );
-	effectFXAA.uniforms[ 'resolution' ].value.set( 1 / w, 1 / h );
-
-	const gammaCorrection = new ShaderPass( GammaCorrectionShader );
-
-	const effectVignette = new ShaderPass( VignetteShader );
-	effectVignette.uniforms[ "offset" ].value = 0.5;
-	effectVignette.uniforms[ "darkness" ].value = 0.75;
-
-	const effectFilm = new FilmPass( 0.35, 0.3, 3, false );
 
 	const target1 = new THREE.WebGLRenderTarget( w, h, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat} );
 	const	target2 = new THREE.WebGLRenderTarget( w, h, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat } );
@@ -145,8 +126,19 @@ function init() {
 	effectComposer = new EffectComposer( renderer, target1 );
 	effectComposer.renderToScreen = false;
 	effectComposer.addPass(renderPass);
+
+	effectSobel = new ShaderPass( SobelOperatorShader );
+	effectSobel.uniforms[ 'resolution' ].value.x = w * window.devicePixelRatio;
+	effectSobel.uniforms[ 'resolution' ].value.y = h * window.devicePixelRatio;
 	effectComposer.addPass(effectSobel);
+
+	const gammaCorrection = new ShaderPass( GammaCorrectionShader );
 	effectComposer.addPass(gammaCorrection);
+
+	// const effectGrayScale = new ShaderPass( LuminosityShader );
+
+	// const effectColorCorrect = new ShaderPass(ColorCorrectionShader);
+	// effectColorCorrect.uniforms['powRGB'].value.set(0.25, 0.5, 0.25);
 
 	renderComposer = new EffectComposer(renderer, target2);
 	renderComposer.renderToScreen = false;
@@ -160,8 +152,64 @@ function init() {
 	composer = new EffectComposer(renderer);
 	composer.renderToScreen = true;
 	composer.addPass(blender);
+
+
+	// const effectVignette = new ShaderPass( VignetteShader );
+	// effectVignette.uniforms[ "offset" ].value = 0.5;
+	// effectVignette.uniforms[ "darkness" ].value = 0.75;
 	// composer.addPass(effectVignette);
+	// const effectFilm = new FilmPass( 0.35, 0.3, 3, false );
 	// composer.addPass(effectFilm);
+}
+
+
+function buildLevel() {
+	const hexMap = new HexMap(C.hexRings, true);
+	const hexes = hexMap.getHexes();
+
+	hexMap.observationDeskStartHex = choice(...hexMap.getRing(3));
+	const arrowHex = choice(...hexMap.getHexesByDistance(hexMap.observationDeskStartHex, 6));
+	arrowHex.isArrowHex = true;
+	hexMap.getRing(0)[0].isCenter = true;
+
+	hexes.forEach(hex => {
+		let walls = hexMap.getWalls(hex, C.sideLength);
+		if (hex.isCenter) choice(...walls).isLabelWall = true;
+		if (hex.isArrowHex) {
+			walls[0].arrowDirection = 'left';
+			walls[1].arrowDirection = 'right';
+			portals.push({
+				position: scenery.addPortal(walls[0]),
+				level: 'b',
+				entered: false,
+			});
+			portals.push({
+				position: scenery.addPortal(walls[1]),
+				level: 'c',
+				entered: false,
+			});
+		}
+		for (let i = 0; i < walls.length; i++) {
+			const { x, z, rotation, key, distance, arrow, isLabelWall, arrowDirection } = walls[i];
+			const y = 4, h = distance + 1, postHeight = 2.8;
+			const isRock = distance == 3 || chance(0.4);
+			physics.addWall(x, y, z, h, postHeight, rotation, isRock);
+			scenery.addWall(x, y, z, h, postHeight, rotation, isRock, isLabelWall, arrowDirection);
+		}
+	});
+
+	scenery.addObservationDeck(hexMap);
+
+	ais = new AI(hexMap, scene, physics, modelLoader);
+	scenery.addTrees();
+	modelLoader.updateCount();
+}
+
+function reset() {
+	physics.reset();
+	modelLoader.reset();
+	scenery.reset();
+	ais.reset();
 }
 
 
@@ -177,7 +225,7 @@ function animate() {
 		// renderer.render(scene, camera);
 
 		const timeElapsed = t - previousRAF;
-		if (playerController) playerController.update(timeElapsed);
+		if (playerController) playerController.update(timeElapsed, groundObjects);
 		if (playerController.isTalking && doneOnboarding) {
 			if (dialogDisplay.getStatus() == 'ended') {
 				playerController.isTalking = false; 
@@ -197,6 +245,20 @@ function animate() {
 		if (ais) {
 			const aiProps = ais.update(timeElapsed, playerController.getProps());
 			// playerInput.sniff = playerController.sniffCheck(aiProps);
+		}
+
+
+		for (let i = 0; i < portals.length; i++) {
+			const d = playerController.getPosition().distanceTo(portals[i].position);
+			if (d < 3 && !portals[i].entered) {
+				dialogDisplay.setMessage('press x to enter');
+				playerController.isTalking = true;
+				portals[i].entered = true;
+				dialogDisplay.setDoesEnd(false);
+			} else if (d > 3 && portals[i].entered) {
+				portals[i].entered = false;
+				dialogDisplay.setDoesEnd(true);
+			}
 		}
 
 		physics.update(timeElapsed);
@@ -235,18 +297,25 @@ document.addEventListener('keydown', ev => {
 		// console.log(controls);
 	}
 
-	if (ev.key == 'x' && doOnBoarding &&
-		onBoardingCount <= C.onBoarding.length && 
+	if (ev.key == 'x') {
+		if (doOnBoarding && onBoardingCount <= C.onBoarding.length && 
 		dialogDisplay.getStatus() == 'message') {
-		if (onBoardingCount == 0) initSound();
-		// start with sound
-		onBoardingCount++;
-		dialogDisplay.setDoesEnd(true);
-		// if (onBoardingCount == 2) playerInput.setReady();
-		if (onBoardingCount == C.onBoarding.length) {
-			dialogDisplay.setMessage('');
-			playerController.isTalking = false;
-			doneOnboarding = true;
+			if (onBoardingCount == 0) initSound();
+			// start with sound
+			onBoardingCount++;
+			dialogDisplay.setDoesEnd(true);
+			// if (onBoardingCount == 2) playerInput.setReady();
+			if (onBoardingCount == C.onBoarding.length) {
+				dialogDisplay.setMessage('');
+				playerController.isTalking = false;
+				doneOnboarding = true;
+			}
+		}
+
+		let enterPortal = portals.filter(portal => portal.entered)[0];
+		if (enterPortal) {
+			reset();
+			buildLevel();
 		}
 	}
 

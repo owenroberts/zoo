@@ -22,7 +22,6 @@ export default function CharacterAI(input, controller, dialog, debug) {
 	const playerTalkDistance = 5;
 	let talkedToPlayer = false;
 
-
 	function directionTo(target) {
 		let { position, quaternion } = controller.getProps();
 

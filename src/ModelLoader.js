@@ -17,7 +17,6 @@ export default function ModelLoader(callback) {
 	const instances = {};
 	let scene;
 	
-	
 	manager.onLoad = () => {
 		console.timeEnd('models loaded');
 		callback();
@@ -131,4 +130,18 @@ export default function ModelLoader(callback) {
 		scene = _scene;
 	};
 
+	this.reset = function() {
+		console.log('instances', instances);
+		for (const k in instances) {
+			if (k != 'buildings') {
+				for (const m in instances[k]) {
+					scene.remove(instances[k][m].mesh);
+					if (instances[k][m].mesh2) scene.remove(instances[k][m].mesh2);
+					instances[k][m] = {};
+					addInstanceMesh(k, m, models[k].gltfs[m], C.models[k]);
+				}
+			}
+		}
+
+	};
 }

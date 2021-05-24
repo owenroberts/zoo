@@ -11,8 +11,8 @@ import C from './Constants';
 
 export default function AI(map, scene, physics, modelLoader) {
 
-	const AIs = [];
-	const updateTimeMax = 1000 / 10; // dont allow long time updates
+	let AIs = [];
+	const updateTimeMax = 1000 / 20; // dont allow long time updates
 	
 	const hexes = map.getHexes();
 	const positions = [];
@@ -51,5 +51,12 @@ export default function AI(map, scene, physics, modelLoader) {
 
 		props.shift();
 		return props; // return props to player for buff sniff action
+	};
+
+	this.reset = function() {
+		for (let i = 0; i < AIs.length; i++) {
+			AIs[i].controller.remove();
+		}
+		AIs = [];
 	};
 }

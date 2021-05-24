@@ -11,11 +11,12 @@ export default function DialogDisplay(w, h) {
 		height: h,
 		scenes: ['dialog'],
 		lineWidth: 2,
+		multiColor: true,
 	});
 
 
 	lines.load({
-		text: 'static/drawings/data.json'
+		text: 'static/drawings/data.json',
 	});
 
 	let dialog;
@@ -28,7 +29,9 @@ export default function DialogDisplay(w, h) {
 
 	window.start = function() {
 		let indexString = "abcdefghijklmnopqrstuvwxyz.?',";
+		lines.anims.text.lettering.overrideProperty('color', '#ffffff');
 		dialog = new Text(100, h - 200, 'welcome to hell', 32, lines.anims.text.lettering, indexString);
+		dialog.shadow = true;
 	};
 
 	// uses its own draw update -- combine with animate -- maybe better to have separate

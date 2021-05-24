@@ -107,10 +107,13 @@ export default function HexMap(radius, isMaze) {
 
 	if (isMaze) buildMaze();
 
-	// choose observation deck hex
-	this.observationDeskStartHex = choice(...grid.filter(hex => getDistanceToCenter(hex) == 3));
-	this.arrowHex = choice(...grid.filter(hex => getDistance(hex, this.observationDeskStartHex) == 6));
-	this.arrowHex.isArrowHex = true;
+	this.getRing = function(distance) {
+		return grid.filter(hex => getDistanceToCenter(hex) == distance);
+	};
+
+	this.getHexesByDistance = function(hex, distance) {
+		return  grid.filter(h => getDistance(h, hex) == distance);
+	};
 
 	this.getHexNeighbors = function(a) {
 		return getNeighbors(a);

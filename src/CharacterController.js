@@ -100,7 +100,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		const sphereShape = new CANNON.Sphere(colliderRadius);
 		const physicsMaterial = new CANNON.Material('physics');
 		body = new CANNON.Body({ mass: 5, material: physicsMaterial });
-		body.friction = 0.9;
+		body.friction = 1;
 		body.allowSleep = false;
 		body.collisionFilterGroup = 2;
 		// body.fixedRotation = true;
@@ -237,7 +237,7 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		body.velocity.z += sideways.z;
 	}
 
-	this.update = function(timeElapsed) {
+	this.update = function(timeElapsed, groundObjects) {
 		if (!mesh || !body) return;
 		const timeInSeconds = timeElapsed * 0.001;
 		
@@ -245,9 +245,9 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		container.position.copy(body.position); // update mesh position
 
 		let endOfJump = false; // check if player is about to hit ground
-		if (jump.count > 0 && body.velocity.y < 5) {
+		if (jump.count > 0 && body.velocity.y < 5 && groundObjects) {
 			groundRaycaster.set(container.position.clone(), groundRay.clone());
-			const intersects = groundRaycaster.intersectObjects(physics.getCastList());
+			const intersects = groundRaycaster.intersectObjects(groundObjects);
 			for (let i = 0; i < intersects.length; i++) {
 				if (intersects[i].distance < 2.5) endOfJump = true;
 			}
@@ -308,6 +308,10 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 		debugMesh.material = new THREE.MeshBasicMaterial({ color: 0xaaddff, wireframe: true });
 		stateMachine.debug = isDebug;
 		debug = isDebug;
+	};
+
+	this.remove = function() {
+		scene.remove(container);
 	};
 }
 
