@@ -55,14 +55,10 @@ export default function ModelLoader(callback) {
 
 		const { str, texturePath, repeat, color, shadow } = params;
 
-		const texture = new THREE.TextureLoader().load(texturePath);
-		texture.wrapS = THREE.RepeatWrapping;
-		texture.wrapT = THREE.RepeatWrapping;
-		texture.repeat.set(repeat, repeat);
-
 		const material = getToonMaterial({
-			map: texture,
 			color: color.length ? color[0] : color,
+			texture: texturePath,
+			repeat: repeat,
 		});
 
 		// grass and trees -- only support for two meshes, colors
@@ -84,8 +80,9 @@ export default function ModelLoader(callback) {
 		if (hasChildren) {
 			const geo2 = gltf.scene.children[0].children[1].geometry;
 			const mat2 = getToonMaterial({
-				map: texture,
 				color: color.length ? color[1] : color,
+				texture: texturePath,
+				repeat: repeat,
 			});
 			const mesh2 = new THREE.InstancedMesh(geo2, mat2, 1024);
 			mesh2.instanceMatrix.setUsage(THREE.DynamicDrawUsage);

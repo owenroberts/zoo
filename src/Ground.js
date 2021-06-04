@@ -57,8 +57,6 @@ export default function Ground() {
 	texture.wrapS = THREE.RepeatWrapping;
 	texture.wrapT = THREE.RepeatWrapping;
 	texture.repeat.set( 128, 128 );
-	texture.anisotropy = 16;
-	texture.encoding = THREE.sRGBEncoding;
 
 	const groundMat = new THREE.MeshPhongMaterial({ 
 		color: 0xffffff,

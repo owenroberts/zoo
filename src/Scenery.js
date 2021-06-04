@@ -223,13 +223,11 @@ export default function Scenery(scene, ground, modelLoader) {
 		viewer.quaternion.copy(allPoints[allPoints.length - 1].quaternion);
 		viewer.translateZ(-0.5);
 		viewer.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI);
-		const texture = new THREE.TextureLoader().load(C.viewerTexturePath);
-		texture.wrapS = THREE.RepeatWrapping;
-		texture.wrapT = THREE.RepeatWrapping;
-		texture.repeat.set(8, 8);
+
 		const material = getToonMaterial({
 			color: 0xc7e0ed,
-			map: texture,
+			texture: C.viewerTexturePath,
+			repeat: 8,
 		});
 		viewer.traverse(child => {
 			if (child.constructor.name == 'Mesh') {
@@ -303,20 +301,20 @@ export default function Scenery(scene, ground, modelLoader) {
 			arrow.position.set(x, y, z);
 			arrow.quaternion.copy(origin.quaternion);
 			arrow.translateY(_y);
-			const texture = new THREE.TextureLoader().load(C.letterTexturePath);
-			texture.wrapS = THREE.RepeatWrapping;
-			texture.wrapT = THREE.RepeatWrapping;
-			texture.repeat.set(8, 8);
+
 			const material = getToonMaterial({
 				color: 0x6f6c82,
-				map: texture,
+				texture: C.letterTexturePath,
+				repeat: 8,
 			});
+
 			arrow.traverse(child => {
 				if (child.constructor.name == 'Mesh') {
 					child.material = material;
 					child.receiveShadow = true;
 				}
 			});
+
 			removables.push(arrow);
 			scene.add(arrow);
 		}
@@ -341,19 +339,17 @@ export default function Scenery(scene, ground, modelLoader) {
 		portal.translateZ(1.5);
 		portal.translateY(2.5);
 
-		const texture = new THREE.TextureLoader().load(C.portalTexturePath);
-		texture.wrapS = THREE.RepeatWrapping;
-		texture.wrapT = THREE.RepeatWrapping;
-		texture.repeat.set(8, 8);
 
 		const material = getToonMaterial({
 			color: 0x23630f,
-			map: texture,
+			texture: C.portalTexturePath,
+			repeat: 8,
 		});
 
 		const insideMaterial = getToonMaterial({
 			color: 0x222421,
-			map: texture,
+			texture: C.portalTexturePath,
+			repeat: 8,
 		});
 
 		portal.traverse(child => {

@@ -6,7 +6,7 @@ import * as THREE from 'three';
 export default function getToonMaterial(params) {
 	// toon material - put this somewhere else if making lots of these (of same color)
 	
-	/* three color
+	/* three toon colors */
 	const alpha = 5, beta = 5, gamma = 5;
 	const colors = new Uint8Array( 2 );
 	for ( let c = 0; c <= colors.length; c++) {
@@ -17,17 +17,26 @@ export default function getToonMaterial(params) {
 	gradientMap.minFilter = THREE.NearestFilter;
 	gradientMap.magFilter = THREE.NearestFilter;
 	gradientMap.generateMipmaps = false;
-	*/
+
+	const { color, emissiveColor, skinning, texture, repeat } = params;
 	
 	const material = new THREE.MeshToonMaterial({
-		color: params.color || 0xffffff,
-		emissive: new THREE.Color(params.emissiveColor || 0x000000),
-		skinning: params.skinning || false,
+		color: color || 0xffffff,
+		emissive: new THREE.Color(emissiveColor || 0x000000),
+		skinning: skinning || false,
 		specular: new THREE.Color(0x00000),
-		// gradientMap: gradientMap,
+		gradientMap: gradientMap,
 		shininess: 0,
 	});
-	if (params.map) material.map = params.map;
-	return material;
 
+	if (texture) {
+		// will load same texture multiple times ...
+		const tex = new THREE.TextureLoader().load(texture); 
+		tex.wrapS = THREE.RepeatWrapping;
+		tex.wrapT = THREE.RepeatWrapping;
+		tex.repeat.set(repeat, repeat);
+		material.map = tex;
+	}
+
+	return material;
 }

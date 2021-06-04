@@ -29,22 +29,20 @@ export default function PortalScene(renderer, modelLoader) {
 		dirLight.position.multiplyScalar( 30 );
 		scene.add( dirLight );
 
-		const texture = new THREE.TextureLoader().load(C.characterTexturePath());
-		texture.wrapS = THREE.RepeatWrapping;
-		texture.wrapT = THREE.RepeatWrapping;
-		texture.repeat.set( 16, 16 );
-		
 		const material = getToonMaterial({
 			color: 0x6e619e,
 			skinning: true,
 			emissiveColor: 0x1e00ff,
-			map: texture,
+			texture: C.characterTexturePath(),
+			repeat: 16,
 		});
 
 		const eyeMaterial = getToonMaterial({
 			color: 0xffffff,
 			skinning: true,
 			emissiveColor: 0x1e00ff,
+			texture: C.characterTexturePath(),
+			repeat: 16,
 		});
 
 		const gltf = modelLoader.getGLTF('characters', 'a');
@@ -66,19 +64,16 @@ export default function PortalScene(renderer, modelLoader) {
 
 		portal = modelLoader.getModel('items', 'portal-inside');
 
-		const textureP = new THREE.TextureLoader().load(C.portalTexturePath);
-		textureP.wrapS = THREE.RepeatWrapping;
-		textureP.wrapT = THREE.RepeatWrapping;
-		textureP.repeat.set(8, 8);
-
 		const materialP = getToonMaterial({
 			color: 0x23630f,
-			map: textureP,
+			texture: C.portalTexturePath,
+			repeat: 8,
 		});
 
 		const insideMaterial = getToonMaterial({
 			color: 0x222421,
-			map: textureP,
+			texture: C.portalTexturePath,
+			repeat: 8,
 		});
 
 		portal.traverse(child => {

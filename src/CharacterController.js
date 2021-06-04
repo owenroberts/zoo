@@ -44,17 +44,13 @@ function CharacterController(scene, physics, modelLoader, input, position) {
 
 	function init() {
 		scene.add(container);
-
-		const texture = new THREE.TextureLoader().load(C.characterTexturePath());
-		texture.wrapS = THREE.RepeatWrapping;
-		texture.wrapT = THREE.RepeatWrapping;
-		texture.repeat.set( 16, 16 );
 		
 		const material = getToonMaterial({
 			color: 0x6e619e,
 			skinning: true,
 			emissiveColor: 0x1e00ff,
-			map: texture,
+			texture: C.characterTexturePath(),
+			repeat: 16,
 		});
 
 		const eyeMaterial = getToonMaterial({
