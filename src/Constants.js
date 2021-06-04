@@ -114,7 +114,7 @@ const constants = {
 		},
 		items: {
 			path: './static/models/items/',
-			filenames: ['viewer', 'arrow-left', 'arrow-right', 'portal-3'],
+			filenames: ['viewer', 'arrow-left', 'arrow-right', 'portal-3', 'portal-inside'],
 			instance: false,
 		}
 	},

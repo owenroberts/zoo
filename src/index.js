@@ -5,18 +5,9 @@ import { CharacterController } from './CharacterController';
 import { CharacterControllerInput } from './CharacterControllerInput';
 import { ThirdPersonCamera } from './ThirdPersonCamera';
 import { OrbitControls } from './OrbitControls';
+import PostProcessing from './PostProcessing';
+import PortalScene from './PortalScene';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
-
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js';
-import { SobelOperatorShader } from 'three/examples/jsm/shaders/SobelOperatorShader.js';
-import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
-import { VignetteShader } from 'three/examples/jsm/shaders/VignetteShader.js';
-import { GammaCorrectionShader } from 'three/examples/jsm/shaders/GammaCorrectionShader.js';
-import { ColorCorrectionShader } from 'three/examples/jsm/shaders/ColorCorrectionShader.js';
-import { BlendShader } from 'three/examples/jsm/shaders/BlendShader.js';
 
 import { choice, random, chance } from './Cool';
 import Ground from './Ground';
@@ -31,6 +22,11 @@ import Doodoo from '../doodoo/doodoo.js';
 import C from './Constants';
 
 let camera, scene, renderer, stats, dpr;
+let portalScene;
+let mainPost;
+let currentScene = 'main';
+// portal -- player moving through portal
+
 let composer, renderComposer, effectComposer, effectSobel;
 let controls;
 let w = window.innerWidth, h = window.innerHeight;
@@ -80,11 +76,14 @@ function init() {
 	renderer.toneMappingExposure = 0.5;
 	renderer.autoClear = false;
 	document.body.appendChild(renderer.domElement);
+	renderer.domElement.id = 'three-canvas';
 
 	scene = new THREE.Scene();
 	setupScene(scene);
 	modelLoader.setScene(scene);
 	renderer.setClearColor(scene.fog.color);
+
+	portalScene = new PortalScene(renderer, modelLoader);
 
 // stats
 	stats = new Stats();
@@ -116,52 +115,38 @@ function init() {
 
 	buildLevel();
 	
-
 // post processing
-
-	const target1 = new THREE.WebGLRenderTarget( w, h, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat} );
-	const	target2 = new THREE.WebGLRenderTarget( w, h, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat } );
-
-	const renderPass = new RenderPass( scene, camera );
-	effectComposer = new EffectComposer( renderer, target1 );
-	effectComposer.renderToScreen = false;
-	effectComposer.addPass(renderPass);
-
-	effectSobel = new ShaderPass( SobelOperatorShader );
-	effectSobel.uniforms[ 'resolution' ].value.x = w * window.devicePixelRatio;
-	effectSobel.uniforms[ 'resolution' ].value.y = h * window.devicePixelRatio;
-	effectComposer.addPass(effectSobel);
-
-	const gammaCorrection = new ShaderPass( GammaCorrectionShader );
-	effectComposer.addPass(gammaCorrection);
-
-	// const effectGrayScale = new ShaderPass( LuminosityShader );
-
-	// const effectColorCorrect = new ShaderPass(ColorCorrectionShader);
-	// effectColorCorrect.uniforms['powRGB'].value.set(0.25, 0.5, 0.25);
-
-	renderComposer = new EffectComposer(renderer, target2);
-	renderComposer.renderToScreen = false;
-	renderComposer.addPass(renderPass);
-
-	const blender = new ShaderPass(BlendShader);
-	blender.uniforms.tDiffuse1.value = renderComposer.readBuffer.texture;
-	blender.uniforms.tDiffuse2.value = effectComposer.readBuffer.texture;
-	blender.uniforms['mixRatio'].value = 0.5;
-
-	composer = new EffectComposer(renderer);
-	composer.renderToScreen = true;
-	composer.addPass(blender);
-
-
-	// const effectVignette = new ShaderPass( VignetteShader );
-	// effectVignette.uniforms[ "offset" ].value = 0.5;
-	// effectVignette.uniforms[ "darkness" ].value = 0.75;
-	// composer.addPass(effectVignette);
-	// const effectFilm = new FilmPass( 0.35, 0.3, 3, false );
-	// composer.addPass(effectFilm);
+	mainPost = new PostProcessing(renderer, scene, camera);
 }
 
+function portalTransition() {
+	dialogDisplay.setDoesEnd(true);
+	dialogDisplay.setMessage('');
+	playerController.isTalking = false;
+
+	renderer.domElement.style.opacity = 0; // fade out
+
+	// chance scene & fade back in
+	setTimeout(() => {
+		reset();
+		currentScene = 'portal';
+		renderer.domElement.style.opacity = 1;
+	}, 1000);
+
+	// fade out again
+	setTimeout(() => {
+		renderer.domElement.style.opacity = 0;
+	}, 2000);
+
+	// fade back in
+	setTimeout(() => {
+		buildLevel();
+		currentScene = 'main';
+		renderer.domElement.style.opacity = 1;
+		portalScene.reset();
+	}, 3000);	
+	
+}
 
 function buildLevel() {
 	const hexMap = new HexMap(C.hexRings, true);
@@ -212,61 +197,67 @@ function reset() {
 	ais.reset();
 }
 
-
 let previousRAF = null;
 function animate() {
 	requestAnimationFrame(t => {
 		if (previousRAF === null) previousRAF = t;
 		animate();
-
-		effectComposer.render();
-		renderComposer.render();
-		composer.render();
-		// renderer.render(scene, camera);
-
 		const timeElapsed = t - previousRAF;
-		if (playerController) playerController.update(timeElapsed, groundObjects);
-		if (playerController.isTalking && doneOnboarding) {
-			if (dialogDisplay.getStatus() == 'ended') {
-				playerController.isTalking = false; 
-				dialogDisplay.setMessage('');
-			}
+
+		if (currentScene === 'main') {
+			mainPost.render();			
+			gameUpdate(timeElapsed);
+		} else if (currentScene == 'portal') {
+			// renderer.render(portalScene.scene, portalScene.camera);
+			portalScene.render();
+			portalScene.update(timeElapsed);
 		}
 
-		if (dialogDisplay && doOnBoarding) {
-			if (onBoardingCount < C.onBoarding.length) {
-				if (dialogDisplay.getStatus() == 'ended') {
-					dialogDisplay.setMessage(C.onBoarding[onBoardingCount]);
-					dialogDisplay.setDoesEnd(false);
-				}
-			}
-		}
-		
-		if (ais) {
-			const aiProps = ais.update(timeElapsed, playerController.getProps());
-			// playerInput.sniff = playerController.sniffCheck(aiProps);
-		}
-
-
-		for (let i = 0; i < portals.length; i++) {
-			const d = playerController.getPosition().distanceTo(portals[i].position);
-			if (d < 3 && !portals[i].entered) {
-				dialogDisplay.setMessage('press x to enter');
-				playerController.isTalking = true;
-				portals[i].entered = true;
-				dialogDisplay.setDoesEnd(false);
-			} else if (d > 3 && portals[i].entered) {
-				portals[i].entered = false;
-				dialogDisplay.setDoesEnd(true);
-			}
-		}
-
-		physics.update(timeElapsed);
-		controls.update();
-		controls.goTo(playerController.getPosition()); 
 		stats.update();
 		previousRAF = t;
 	});
+}
+
+function gameUpdate(timeElapsed) {
+	if (playerController) playerController.update(timeElapsed, groundObjects);
+	if (playerController.isTalking && doneOnboarding) {
+		if (dialogDisplay.getStatus() == 'ended') {
+			playerController.isTalking = false; 
+			dialogDisplay.setMessage('');
+		}
+	}
+
+	if (dialogDisplay && doOnBoarding) {
+		if (onBoardingCount < C.onBoarding.length) {
+			if (dialogDisplay.getStatus() == 'ended') {
+				dialogDisplay.setMessage(C.onBoarding[onBoardingCount]);
+				dialogDisplay.setDoesEnd(false);
+			}
+		}
+	}
+	
+	if (ais) {
+		const aiProps = ais.update(timeElapsed, playerController.getProps());
+		// playerInput.sniff = playerController.sniffCheck(aiProps);
+	}
+
+
+	for (let i = 0; i < portals.length; i++) {
+		const d = playerController.getPosition().distanceTo(portals[i].position);
+		if (d < 3 && !portals[i].entered) {
+			dialogDisplay.setMessage('press x to enter');
+			playerController.isTalking = true;
+			portals[i].entered = true;
+			dialogDisplay.setDoesEnd(false);
+		} else if (d > 3 && portals[i].entered) {
+			portals[i].entered = false;
+			dialogDisplay.setDoesEnd(true);
+		}
+	}
+
+	physics.update(timeElapsed);
+	controls.update();
+	controls.goTo(playerController.getPosition()); 
 }
 
 // message events
@@ -275,7 +266,7 @@ window.addEventListener("message", (event) => {
 		dialogDisplay.setMessage(event.data.aiMessage);
 		voiceSynth.speak(event.data.aiMessage);
 		playerController.isTalking = true;
-		console.log('isTalking?', playerController);
+		// console.log('isTalking?', playerController);
 	}
 
 	if (event.data.testAxes) {
@@ -313,17 +304,17 @@ document.addEventListener('keydown', ev => {
 		}
 
 		let enterPortal = portals.filter(portal => portal.entered)[0];
-		if (enterPortal) {
-			reset();
-			buildLevel();
-		}
+		if (enterPortal) portalTransition();
+		
 	}
 
+	// start without sound
 	if (ev.key == 'z' && onBoardingCount == 0 && doOnBoarding) {
-		// start without sound
 		onBoardingCount++;
 		dialogDisplay.setDoesEnd(true);
 	}
+
+	if (ev.key == 't') portalTransition(); // debug
 });
 
 function onWindowResize() {
@@ -332,6 +323,8 @@ function onWindowResize() {
 	camera.aspect = w / h;
 	camera.updateProjectionMatrix();
 	renderer.setSize(dpr * w, dpr * (w * h / w));
-	effectSobel.uniforms[ 'resolution' ].value.x = w * window.devicePixelRatio;
-	effectSobel.uniforms[ 'resolution' ].value.y = h * window.devicePixelRatio;
+
+	// update this for scenes ...
+	// effectSobel.uniforms[ 'resolution' ].value.x = w * window.devicePixelRatio;
+	// effectSobel.uniforms[ 'resolution' ].value.y = h * window.devicePixelRatio;
 }
