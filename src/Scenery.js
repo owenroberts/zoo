@@ -15,7 +15,7 @@ export default function Scenery(scene, ground, modelLoader) {
 
 		const dummy = new THREE.Object3D();
 
-		let b = 96; // bound
+		let b = C.sceneWidth / 3; // bound
 		let long = distance(0, 0, b, b);
 		let inside = distance(0, 0, b/2, b/2);
 		for (let x = -b; x < b; x += 8) {
@@ -75,7 +75,7 @@ export default function Scenery(scene, ground, modelLoader) {
 				const r = [Math.PI, 0, -Math.PI / 2, Math.PI / 2][j];
 				z *= j % 1 == 0 ? -1 : 1;
 
-				for (let x = C.buildingSize / 4; x < rowWidth; x += C.buildingSize / 2) {
+				for (let x = C.buildingSize / 2; x <= rowWidth; x += C.buildingSize / 2) {
 					let _x = j > 1 ? z + C.sceneWidth / 2 : x;
 					let _z = j > 1 ? x - C.sceneWidth / 2 : z;
 					dummy.position.set(_x - C.sceneWidth / 2, C.buildingY, _z);

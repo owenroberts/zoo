@@ -20,7 +20,7 @@ export default function PostProcessing(renderer, scene, camera) {
 
 	const renderPass = new RenderPass( scene, camera );
 	const effectComposer = new EffectComposer( renderer, target1 );
-	effectComposer.renderToScreen = false;
+	// effectComposer.renderToScreen = false;
 	effectComposer.addPass(renderPass);
 
 	const effectSobel = new ShaderPass( SobelOperatorShader );
@@ -46,8 +46,8 @@ export default function PostProcessing(renderer, scene, camera) {
 
 	this.render = function() {
 		effectComposer.render();
-		renderComposer.render();
-		composer.render();
+		// renderComposer.render();
+		// composer.render();
 		// renderer.render(scene, camera);
 	};	
 }

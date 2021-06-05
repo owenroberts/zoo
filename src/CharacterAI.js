@@ -126,8 +126,9 @@ export default function CharacterAI(input, controller, dialog, debug) {
 		if (!input || !controller) return;
 
 		let returnTalkedToPlayer = false
-		if (!input.hasAction('talk') && !input.hasAction('sniff'))
+		if (!input.hasAction('talk') && !input.hasAction('sniff')) {
 			returnTalkedToPlayer = flock(others, canTalk);
+		}
 
 		input.update(timeElapsed);
 		controller.update(timeElapsed);

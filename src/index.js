@@ -91,7 +91,6 @@ function init() {
 	window.addEventListener('resize', onWindowResize);
 
 // setup
-	
 	ground = new Ground();
 	scene.add(ground.mesh);
 	groundObjects.push(ground.mesh);
@@ -112,10 +111,8 @@ function init() {
 	// controls.maxDistance = 50;
 	// controls.enableZoom = false;
 
-
 	buildLevel();
 	
-// post processing
 	mainPost = new PostProcessing(renderer, scene, camera);
 }
 
@@ -145,7 +142,6 @@ function portalTransition() {
 		renderer.domElement.style.opacity = 1;
 		portalScene.reset();
 	}, 3000);	
-	
 }
 
 function buildLevel() {
@@ -208,7 +204,6 @@ function animate() {
 			mainPost.render();			
 			gameUpdate(timeElapsed);
 		} else if (currentScene == 'portal') {
-			// renderer.render(portalScene.scene, portalScene.camera);
 			portalScene.render();
 			portalScene.update(timeElapsed);
 		}

@@ -11,14 +11,14 @@ const constants = {
 	// map, world settings
 	hexRings: 3,
 	sideLength: 8,
-	sceneWidth: 256,
-	sceneDepth: 256,
+	sceneWidth: 128,
+	sceneDepth: 128,
 	buildingSize: 48,
 	buildingRows: 2,
 	buildingY: 3,
 
 	// ai settings
-	aiNum: 6,
+	aiNum: 12,
 
 	// textures
 	// buildingTexturePath: `./static/textures/pixels/building-${choice(1,2,3,4,5,6)}.png`,

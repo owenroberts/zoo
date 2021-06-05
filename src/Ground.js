@@ -14,10 +14,9 @@ export default function Ground() {
 	let groundHeight = 3;
 	let xRandom = 4;
 	let yRandom = 4;
-	const sizeX = 16;
+	const sizeX = C.sceneWidth / 16; // 16;
 	const sizeZ = sizeX;
 	const matrix = [];
-
 
 	// const noise = new Noise();
 	// noise.seed(Math.random());
@@ -42,7 +41,7 @@ export default function Ground() {
 
 	const groundMaterial = new CANNON.Material('ground');
 	const heightfieldShape = new CANNON.Heightfield(matrix, {
-		elementSize: 256 / sizeX,
+		elementSize: C.sceneWidth / sizeX,
 	});
 	this.body = new CANNON.Body({ mass: 0 });
 	this.body.addShape(heightfieldShape);
