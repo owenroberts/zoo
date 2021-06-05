@@ -14,7 +14,7 @@ export default function Ground() {
 	let groundHeight = 3;
 	let xRandom = 4;
 	let yRandom = 4;
-	const sizeX = C.sceneWidth / 16; // 16;
+	const sizeX = 16;
 	const sizeZ = sizeX;
 	const matrix = [];
 

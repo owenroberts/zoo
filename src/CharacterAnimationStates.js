@@ -10,7 +10,6 @@ class IdleState extends AnyState {
 	update(input, jump) {
 		if (jump.started) {
 			this.parentStateMachine.set('JumpStart');
-<<<<<<< HEAD
 			return;
 		}
 
@@ -25,9 +24,6 @@ class IdleState extends AnyState {
 		}
 
 		if (input.backward) {
-=======
-		} else if (input.backward) {
->>>>>>> 8d5090b988ca55f6e07defb307c2535969f8c597
 			this.parentStateMachine.set('Back');
 			return;
 		}
@@ -42,7 +38,6 @@ class JumpStart extends SinglePlayState {
 	constructor(parent, name) {
 		super(parent, name);
 	}
-<<<<<<< HEAD
 
 	update(input, jump) {
 		if (!input.jump) {
@@ -60,37 +55,9 @@ class JumpMid extends AnyState {
 		if (endOfJump || jump.count == 0) {
 			this.parentStateMachine.set('JumpLand');
 		}
-=======
-
-	update(input, jump) {
-		if (!input.jump) {
-			this.parentStateMachine.set('JumpMid');
-		}
 	}
 }
 
-class JumpMid extends AnyState {
-	constructor(parent, name) {
-		super(parent, name, );
->>>>>>> 8d5090b988ca55f6e07defb307c2535969f8c597
-	}
-}
-
-<<<<<<< HEAD
-=======
-	update(input, jump, endOfJump) {
-		// console.log('endOfJump', endOfJump)
-		// if (jump.started) {
-		// 	this.parentStateMachine.set('JumpStart');
-		// 	return;
-		// }
-		if (endOfJump) {
-			this.parentStateMachine.set('JumpLand');
-		}
-	}
-}
-
->>>>>>> 8d5090b988ca55f6e07defb307c2535969f8c597
 class JumpLand extends SinglePlayState {
 	constructor(parent, name) {
 		super(parent, name);
@@ -100,11 +67,7 @@ class JumpLand extends SinglePlayState {
 			this.parentStateMachine.set('JumpMid');
 			return;
 		}
-<<<<<<< HEAD
 		if (jump.count === 0) {
-=======
-		if (!input.jump && jump.count === 0) {
->>>>>>> 8d5090b988ca55f6e07defb307c2535969f8c597
 			this.parentStateMachine.set('Idle1');
 		}
 	}
@@ -118,7 +81,6 @@ class WalkState extends AnyState {
 	update(input, jump) {
 		if (jump.started) {
 			this.parentStateMachine.set('JumpStart');
-<<<<<<< HEAD
 			return;
 		}
 
@@ -134,13 +96,6 @@ class WalkState extends AnyState {
 
 		if (input.forward || input.left || input.right) {
 			if (input.run) this.parentStateMachine.set('Run');
-=======
-			return;
-		} else if (input.forward || input.left || input.right) {
-			if (input.run) {
-				this.parentStateMachine.set('Run');
-			}
->>>>>>> 8d5090b988ca55f6e07defb307c2535969f8c597
 			return;
 		}
 
@@ -153,7 +108,6 @@ class BackState extends AnyState {
 		super(parent, name, ['Walk']);
 	}
 
-<<<<<<< HEAD
 	update(input, jump) {
 		if (jump.started) {
 			this.parentStateMachine.set('JumpStart');
@@ -170,9 +124,6 @@ class BackState extends AnyState {
 			return;
 		}
 
-=======
-	update(input) {
->>>>>>> 8d5090b988ca55f6e07defb307c2535969f8c597
 		if (input.backward || input.left || input.right) {
 			return;
 		}
@@ -189,7 +140,6 @@ class RunState extends AnyState {
 	update(input, jump) {
 		if (jump.started) {
 			this.parentStateMachine.set('JumpStart');
-<<<<<<< HEAD
 			return;
 		}
 
@@ -205,13 +155,6 @@ class RunState extends AnyState {
 
 		if (input.forward || input.left || input.right) {
 			if (!input.run) this.parentStateMachine.set('Walk');
-=======
-			return;
-		} else if (input.forward || input.left || input.right) {
-			if (!input.run) {
-				this.parentStateMachine.set('Walk');
-			}
->>>>>>> 8d5090b988ca55f6e07defb307c2535969f8c597
 			return;
 		}
 
@@ -219,7 +162,6 @@ class RunState extends AnyState {
 	}
 }
 
-<<<<<<< HEAD
 class TalkState extends AnyState {
 	update(input) {
 		// only return to idle when done talking
@@ -240,6 +182,3 @@ class SniffState extends AnyState {
 
 
 export { IdleState, JumpStart, JumpMid, JumpLand, WalkState, BackState, RunState, TalkState, SniffState };
-=======
-export { IdleState, JumpStart, JumpMid, JumpLand, WalkState, BackState, RunState };
->>>>>>> 8d5090b988ca55f6e07defb307c2535969f8c597
