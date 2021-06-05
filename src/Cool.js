@@ -33,3 +33,4 @@ function chance(n) {
 }
 
 export { choice, random, map, chance, distance };
+

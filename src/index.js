@@ -213,6 +213,7 @@ function animate() {
 	});
 }
 
+<<<<<<< HEAD
 function gameUpdate(timeElapsed) {
 	if (playerController) playerController.update(timeElapsed, groundObjects);
 	if (playerController.isTalking && doneOnboarding) {
@@ -253,6 +254,12 @@ function gameUpdate(timeElapsed) {
 	physics.update(timeElapsed);
 	controls.update();
 	controls.goTo(playerController.getPosition()); 
+=======
+function step(timeElapsed) {
+	const timeElapsedS = timeElapsed * 0.001;
+	if (playerControls) playerControls.update(timeElapsed);
+	thirdPersonCamera.update(timeElapsedS);
+>>>>>>> 8d5090b988ca55f6e07defb307c2535969f8c597
 }
 
 // message events
